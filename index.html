@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suite Académica · Biblioteca</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+:root{
+  --navy:#1e3355; --navy-md:#2a4a7a;
+  --gold:#b8952a; --gold-lt:#f0e6c8; --gold-bd:#d4b96a;
+  --cream:#faf7f2; --paper:#ffffff;
+  --border:#ddd5c5; --text:#2d2a24; --muted:#7a7060;
+  --green:#1a6b3a; --green-lt:#d6ede1; --r:8px;
+  --accent:#2563eb; --accent-lt:#eff6ff;
+}
+body{background:var(--cream);font-family:'Inter','Segoe UI',sans-serif;color:var(--text);font-size:14px;}
+.main-container{max-width:1320px;margin:24px auto 40px;background:var(--paper);border-radius:14px;box-shadow:0 4px 32px rgba(30,51,85,.10),0 1px 4px rgba(0,0,0,.04);overflow:hidden;border:1px solid var(--border);}
+.app-header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-md) 100%);color:white;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--gold);}
+.app-header-left{display:flex;align-items:center;gap:14px;}
+.app-header-logo{width:42px;height:42px;background:rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.app-title{margin:0;font-family:'DM Sans',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:-.02em;}
+.app-subtitle{font-size:10.5px;color:rgba(255,255,255,.5);margin:2px 0 0;letter-spacing:.06em;text-transform:uppercase;}
+.ver-badge{font-family:'DM Mono',monospace;font-size:.63rem;color:var(--gold-bd);background:rgba(212,160,48,.15);border:1px solid rgba(212,160,48,.35);padding:3px 10px;border-radius:20px;letter-spacing:.05em;}
+/* Nav tabs */
+.nav-tabs{background:var(--navy);border-bottom:none;padding:0 16px;gap:2px;flex-wrap:nowrap;overflow-x:auto;}
+.nav-link{font-family:'Inter',sans-serif;font-weight:500;font-size:12.5px;color:rgba(255,255,255,.5);border:none !important;border-radius:0;padding:12px 18px 10px;letter-spacing:.02em;border-bottom:3px solid transparent !important;margin-bottom:0;transition:color .2s,border-color .2s;white-space:nowrap;}
+.nav-link:hover{color:rgba(255,255,255,.85);}
+.nav-link.active{background:transparent !important;color:var(--gold-bd) !important;border-bottom-color:var(--gold-bd) !important;}
+.tab-content{padding:28px 32px;background:var(--paper);}
+/* Buttons */
+.btn-primary{background:var(--navy);border-color:var(--navy);font-weight:600;}
+.btn-primary:hover{background:var(--navy-md);border-color:var(--navy-md);}
+.btn-success{background:var(--green);border-color:var(--green);font-weight:600;}
+.btn-magic{background:linear-gradient(135deg,#5e35b1,#7c4dff);color:white;border:none;font-weight:600;}
+.btn-magic:hover{background:linear-gradient(135deg,#4a27a0,#6a3de8);color:white;}
+/* Forms */
+.form-control,.form-select{border-color:var(--border);border-radius:6px;font-family:'Inter',sans-serif;font-size:13.5px;background:var(--paper);color:var(--text);}
+.form-control:focus,.form-select:focus{border-color:var(--navy-md);box-shadow:0 0 0 3px rgba(42,74,122,.12);}
+.form-label{font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin-bottom:4px;}
+/* Drop zones */
+.drop-zone{border:2px dashed var(--gold-bd);background:var(--gold-lt);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:.25s;}
+.drop-zone:hover,.drop-zone.drag{background:#ede3c5;border-color:var(--gold);}
+.drop-zone.ok{border-color:var(--green);border-style:solid;background:var(--green-lt);}
+.drop-zone h5{font-family:'DM Sans',sans-serif;color:var(--navy);font-weight:600;}
+.drop-zone-import{border-color:#9c78d4;background:#f4f0fc;}
+.drop-zone-import:hover{background:#ebe3fa;border-color:#7c4dff;}
+/* Tables */
+.table{font-size:13px;font-family:'Inter',sans-serif;}
+.table thead th{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
+.table-hover tbody tr:hover{background:rgba(184,149,42,.06) !important;}
+.table-bordered{border-color:var(--border) !important;}
+.table-bordered td,.table-bordered th{border-color:var(--border) !important;}
+/* Row states extractor */
+.row-ok{background-color:#d6ede1 !important;}
+.row-warning{background-color:#fdf4d6 !important;}
+.row-error{background-color:#fad8da !important;}
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--cream);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-bd);}
+/* Auto-fill box */
+.auto-fill-box{background:linear-gradient(to right,#eef4ff,#f5f0ff);border:1px solid #c8d8f8;padding:16px 18px;border-radius:var(--r);margin-bottom:20px;}
+/* Metric cards (Verificador) */
+.v-metric{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.v-metric .ml{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;font-weight:600;}
+.v-metric .mv{font-family:'DM Sans',sans-serif;font-size:1.8rem;font-weight:700;color:var(--navy);letter-spacing:-.03em;line-height:1.1;}
+.v-metric .ms{font-size:.68rem;color:var(--green);margin-top:2px;font-weight:500;}
+/* Verificador reftd */
+.reftd{max-width:220px;word-break:break-word;font-size:.76rem;}
+.cattd{max-width:180px;word-break:break-word;font-size:.74rem;color:var(--muted);}
+.obstd{max-width:160px;word-break:break-word;font-size:.67rem;color:var(--muted);font-style:italic;}
+.ref-cell{max-width:440px;word-break:break-word;white-space:normal;}
+.req-star{color:#c0392b;font-weight:bold;}
+.sticky-top{top:0;z-index:2;}
+/* Sidebar instructions (Verificador) */
+.v-instructions{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r);padding:16px;font-size:.78rem;}
+.v-instructions .stitle{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);font-weight:700;}
+.v-instructions ul{list-style:none;padding:0;margin:0;color:var(--muted);line-height:2;}
+.v-instructions li::before{content:'→ ';color:var(--gold-bd);}
+/* Cotizador */
+.cot-form{background:#fff;border:1px solid var(--border);border-radius:10px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.modal-manual-body{max-height:75vh;overflow-y:auto;text-align:left;padding:24px 28px;background:var(--paper);line-height:1.7;font-family:'Inter',sans-serif;}
+.manual-step-box{background:var(--cream);border-left:4px solid var(--navy);padding:14px 16px;margin-bottom:12px;border-radius:0 var(--r) var(--r) 0;}
+.manual-step-box h5{font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;}
+.step-number{font-weight:700;color:var(--navy);margin-right:4px;}
+</style>
+</head>
+<body>
+
+<div class="main-container">
+
+  <!-- ── Header ── -->
+  <div class="app-header">
+    <div class="app-header-left">
+      <div class="app-header-logo">📚</div>
+      <div>
+        <h1 class="app-title">Suite Académica · Biblioteca</h1>
+        <div class="app-subtitle">Gestor APA 7 · Verificador de Catálogo · Cotizador</div>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="ver-badge">v5.0</span>
+      <button class="btn btn-outline-light btn-sm" style="border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.85);font-size:12px;padding:5px 13px;border-radius:20px;" data-bs-toggle="modal" data-bs-target="#manualModal">📖 Manual</button>
+    </div>
+  </div>
+
+  <!-- ── Tabs ── -->
+  <ul class="nav nav-tabs" id="mainTab" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#gestor-pane">🛠️ Gestor APA 7</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#extractor-pane">📂 Extractor Masivo</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#importador-pane">📚 Importador Zotero</button></li>
+    <li class="nav-item"><button class="nav-link" id="verificador-tab" data-bs-toggle="tab" data-bs-target="#verificador-pane">📊 Verificador de Catálogo</button></li>
+    <li class="nav-item"><button class="nav-link" id="cotizador-tab" data-bs-toggle="tab" data-bs-target="#cotizador-pane">💰 Cotizador</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#disponibilidad-pane">🔍 Disponibilidad catálogo</button></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ════════════════════════════════════════
+         PESTAÑA 1 — GESTOR APA 7
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade show active" id="gestor-pane">
+      <h3 class="mb-4" style="font-family:'DM Sans',sans-serif;font-weight:700;color:var(--navy);">Gestor Inteligente de Bibliografías</h3>
+      <div class="card mb-4 border-light bg-light">
+        <div class="card-body">
+          <h5 style="font-family:'DM Sans',sans-serif;font-size:.95rem;color:var(--navy);font-weight:600;">1. Datos de Contexto</h5>
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Carrera</label><input type="text" id="g_carrera" class="form-control" placeholder="Ej. Ingeniería"></div>
+            <div class="col-md-4"><label class="form-label">Clave</label><input type="text" id="g_clave" class="form-control" placeholder="Ej. MAT-101"></div>
+            <div class="col-md-4"><label class="form-label">Asignatura</label><input type="text" id="g_nombre" class="form-control" placeholder="Ej. Cálculo I"></div>
+          </div>
+        </div>
+      </div>
+      <div class="auto-fill-box">
+        <label class="form-label fw-bold" style="color:var(--navy);">✨ Autocompletado (Limpieza Profunda)</label>
+        <div class="input-group">
+          <input type="text" id="inputMagic" class="form-control" placeholder="Pega DOI (ej: 10.1002/...) o ISBN">
+          <button class="btn btn-magic" type="button" onclick="gestor_buscarMetadatos()" id="btnBuscar">🪄 Buscar y Rellenar</button>
+        </div>
+        <small class="text-muted">El sistema corrige automáticamente títulos en mayúsculas y elimina textos comerciales.</small>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Tipo de Recurso</label>
+          <select id="tipoRecurso" class="form-select" onchange="gestor_actualizarFormulario()">
+            <option value="">-- Seleccione --</option>
+            <option value="libro">Libro Completo</option>
+            <option value="capitulo">Capítulo de Libro</option>
+            <option value="revista">Artículo Científico</option>
+            <option value="tesis">Tesis / Trabajo de Grado</option>
+            <option value="informe">Informe Técnico / Institucional</option>
+            <option value="conferencia">Ponencia / Conferencia</option>
+            <option value="web">Sitio Web</option>
+            <option value="youtube">YouTube</option>
+            <option value="ia">IA (ChatGPT)</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Tipo Bibliografía</label>
+          <select id="tipoBiblio" class="form-select">
+            <option value="Básica">Básica</option>
+            <option value="Complementaria">Complementaria</option>
+          </select>
+        </div>
+        <div id="camposDinamicos" class="row g-3 mt-1"></div>
+        <div class="col-12 mt-3"><button class="btn btn-primary w-100" onclick="gestor_agregarReferencia()">+ Agregar a la Lista</button></div>
+      </div>
+      <div class="mt-4">
+        <h4 style="font-family:'DM Sans',sans-serif;font-weight:700;">Referencias Cargadas</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped" id="tablaGestor">
+            <thead class="table-dark"><tr><th>Tipo</th><th>Referencia APA 7</th><th>ISBN</th><th>Acción</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button class="btn btn-success mt-3" onclick="gestor_exportarExcel()">📥 Descargar Excel (Gestor)</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PESTAÑA 2 — EXTRACTOR MASIVO
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="extractor-pane">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 style="font-family:'DM Sans',sans-serif;font-weight:700;color:#198754;">Extractor Masivo de Bibliografía</h3>
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge bg-secondary" id="badgeArchivos">0 Archivos</span>
+          <span class="badge bg-primary" id="badgeRefs">0 Refs Totales</span>
+        </div>
+      </div>
+
+      <!-- Drop zone -->
+      <div class="drop-zone" id="dropZone">
+        <h5>📂 Arrastra tus archivos aquí</h5>
+        <p class="text-muted mb-2">Soporta PDF y Word (.docx). Detecta sección de bibliografía en programas académicos.</p>
+        <input type="file" id="fileInput" multiple accept=".pdf,.docx" style="display:none">
+        <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('fileInput').click()">O selecciona archivos</button>
+      </div>
+
+      <!-- ── Panel contador de archivos ─────────────────────────────────── -->
+      <div id="ext_contadorPanel" style="display:none;margin-top:12px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <!-- Cabecera con totales -->
+        <div style="background:var(--navy);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:700;">📋 Archivos cargados</span>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <span id="cnt_ok"    style="font-size:.72rem;font-family:'DM Mono',monospace;background:rgba(26,107,58,.9);color:#a7f3d0;padding:2px 10px;border-radius:20px;">✓ 0 OK</span>
+            <span id="cnt_warn"  style="font-size:.72rem;font-family:'DM Mono',monospace;background:rgba(146,64,14,.8);color:#fde68a;padding:2px 10px;border-radius:20px;">⚠ 0 sin refs</span>
+            <span id="cnt_err"   style="font-size:.72rem;font-family:'DM Mono',monospace;background:rgba(153,27,27,.8);color:#fca5a5;padding:2px 10px;border-radius:20px;">✕ 0 error</span>
+            <span id="cnt_total" style="font-size:.72rem;font-family:'DM Mono',monospace;color:rgba(255,255,255,.6);">0 / 0 total</span>
+          </div>
+        </div>
+        <!-- Lista de archivos -->
+        <div id="ext_archivosList" style="max-height:220px;overflow-y:auto;background:var(--paper);"></div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="d-flex justify-content-between mt-3 mb-2">
+        <button class="btn btn-danger btn-sm" onclick="ext_reiniciarTodo()">🗑️ Limpiar Todo</button>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <button class="btn btn-outline-primary disabled" id="btnEnviarGestor" onclick="ext_enviarAlGestor()">➡️ Enviar al Gestor</button>
+          <button class="btn btn-success disabled" id="btnDescargarExt" onclick="ext_exportarExcel()">📥 Excel completo</button>
+          <button class="btn btn-primary disabled" id="btnDescargarSel" onclick="ext_exportarSeleccionadas()" style="display:none;">
+            📥 Excel asignaturas seleccionadas <span id="cntGruposSel" class="badge ms-1" style="background:rgba(255,255,255,.25);">0</span>
+          </button>
+        </div>
+      </div>
+      <!-- Instrucción selección de grupos -->
+      <div id="ext_instruccionSel" style="display:none;margin-bottom:8px;">
+        <div class="alert alert-info py-2 px-3 mb-0 small">
+          ☑ Marca las asignaturas <strong>en el orden</strong> en que quieres que aparezcan en el Excel. El número indica la posición asignada.
+        </div>
+      </div>
+
+      <div id="ext_resumenAsignaturas" style="display:none;" class="mb-3">
+        <h6 class="text-muted mb-2">Asignaturas detectadas</h6>
+        <div id="ext_resumenLista" class="d-flex flex-wrap gap-2"></div>
+      </div>
+
+      <div class="table-responsive mt-3" style="max-height:500px;overflow-y:auto;">
+        <table class="table table-hover table-bordered small">
+          <thead class="table-light sticky-top">
+            <tr>
+              <th width="3%"><input type="checkbox" id="checkAll" onchange="ext_toggleAll(this.checked)"></th>
+              <th width="11%">Sigla</th>
+              <th width="16%">Asignatura</th>
+              <th width="8%">Tipo</th>
+              <th width="36%">Referencia</th>
+              <th width="15%">Validación</th>
+              <th width="11%">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaExtractorBody"><tr><td colspan="6" class="text-center text-muted py-4">Esperando archivos...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <div id="statusLog" class="text-muted small">Listo para procesar.</div>
+        <button class="btn btn-danger btn-sm" id="btnEliminarSel" style="display:none" onclick="ext_eliminarSeleccionadas()">🗑️ Eliminar seleccionadas</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PESTAÑA 3 — IMPORTADOR ZOTERO
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="importador-pane">
+      <h3 class="mb-1" style="font-family:'DM Sans',sans-serif;font-weight:700;color:#6610f2;">📚 Importador Zotero / Mendeley</h3>
+      <p class="text-muted mb-4">Sube archivos <strong>.RIS</strong> o <strong>.BIB</strong> exportados desde Zotero o Mendeley.</p>
+      <div class="drop-zone drop-zone-import" id="dropZoneImport" onclick="document.getElementById('fileInputImport').click()">
+        <h5 style="color:#6610f2;">📚 Arrastra tu archivo .RIS o .BIB aquí</h5>
+        <p class="text-muted mb-1">O haz clic para seleccionar</p>
+        <input type="file" id="fileInputImport" accept=".ris,.bib" style="display:none">
+      </div>
+      <div class="mt-4" id="importResults" style="display:none;">
+        <div class="card mb-3 border-light bg-light">
+          <div class="card-body">
+            <h6 class="mb-3">Datos de contexto <small class="text-muted fw-normal">(se asignan a todas las referencias importadas)</small></h6>
+            <div class="row g-2">
+              <div class="col-md-3"><label class="form-label small">Carrera</label><input type="text" id="imp_carrera" class="form-control form-control-sm" placeholder="Ej. Pedagogía en Matemática"></div>
+              <div class="col-md-2"><label class="form-label small">Clave</label><input type="text" id="imp_clave" class="form-control form-control-sm" placeholder="Ej. IMA 1001"></div>
+              <div class="col-md-4"><label class="form-label small">Asignatura</label><input type="text" id="imp_asignatura" class="form-control form-control-sm" placeholder="Ej. Cálculo I"></div>
+              <div class="col-md-3"><label class="form-label small">Aplicar tipo a todas</label>
+                <div class="input-group input-group-sm">
+                  <select id="imp_tipo" class="form-select form-select-sm"><option value="Básica">Básica</option><option value="Complementaria">Complementaria</option></select>
+                  <button class="btn btn-outline-secondary btn-sm" onclick="imp_aplicarTipoGlobal(document.getElementById('imp_tipo').value)">↓ Todas</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <h6 class="mb-0">Referencias <span class="badge bg-secondary" id="imp_badge">0</span></h6>
+            <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="imp_seleccionarTodas()" style="font-size:.8rem;">☑ Todas</button>
+            <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="imp_deseleccionarTodas()" style="font-size:.8rem;">☐ Ninguna</button>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary btn-sm" onclick="imp_copiarTodas()">📋 Copiar todas</button>
+            <button class="btn btn-primary btn-sm" onclick="imp_enviarAlGestor()">➡️ Enviar seleccionadas</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover table-sm">
+            <thead class="table-light"><tr><th width="40" class="text-center">✓</th><th>Referencia APA 7</th><th width="140">Tipo</th><th width="60" class="text-center">Copiar</th></tr></thead>
+            <tbody id="tablaImportadorBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PESTAÑA 4 — VERIFICADOR DE CATÁLOGO
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="verificador-pane">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h3 class="mb-0" style="font-family:'DM Sans',sans-serif;font-weight:700;color:var(--navy);">📊 Verificador de Catálogo</h3>
+          <p class="text-muted small mb-0">Carga el Excel de referencias y el catálogo KOHA — el sistema cruza y puntúa automáticamente.</p>
+        </div>
+      </div>
+
+      <div id="v_alerts"></div>
+
+      <div class="row g-3 mb-3">
+        <!-- Instrucciones laterales -->
+        <div class="col-lg-3 order-lg-2">
+          <div class="v-instructions">
+            <div class="stitle">📖 Instrucciones</div>
+            <ul><li>Sube Excel de <strong>Referencias</strong></li><li>Sube Excel del <strong>Catálogo</strong></li><li>Selecciona las columnas</li><li>Presiona <strong>Procesar</strong></li><li>Descarga el resultado</li></ul>
+            <div class="stitle mt-3">🎨 Estados</div>
+            <ul><li><span style="color:#15803d">EN BIBLIOTECA</span> — con ejemplares</li><li><span style="color:#b91c1c">SIN STOCK</span> — existe, sin copias</li><li><span style="color:#c2410c">NO ENCONTRADO</span></li><li><span style="color:#1d4ed8">ARTÍCULO</span> — redirige Scholar</li></ul>
+            <div class="stitle mt-3">🔍 Algoritmo</div>
+            <ul><li>Extrae apellidos de la ref.</li><li>Aísla palabras clave del título</li><li>Puntúa por autor + título</li><li>Filtra por año ≥ ref.</li><li>Suma ejemplares de ediciones</li></ul>
+          </div>
+        </div>
+
+        <!-- Zona principal -->
+        <div class="col-lg-9 order-lg-1">
+          <!-- Drops -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="drop-zone text-center" id="v_dropRef" style="padding:24px 14px;">
+                <input type="file" id="v_fileRef" accept=".csv,.xlsx,.xls" style="display:none">
+                <div style="font-size:2rem;">📄</div>
+                <h5 class="mt-1 mb-1">1️⃣ Referencias</h5>
+                <p class="text-muted small mb-2">Bibliografía a verificar (.xlsx/.csv)</p>
+                <div id="v_statRef" class="small fw-bold" style="color:var(--green);min-height:1.2em;"></div>
+                <button class="btn btn-outline-primary btn-sm mt-1" onclick="document.getElementById('v_fileRef').click()">Seleccionar</button>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="drop-zone text-center" id="v_dropCat" style="padding:24px 14px;">
+                <input type="file" id="v_fileCat" accept=".csv,.xlsx,.xls" style="display:none">
+                <div style="font-size:2rem;">📚</div>
+                <h5 class="mt-1 mb-1">2️⃣ Catálogo</h5>
+                <p class="text-muted small mb-2">Libros disponibles en biblioteca</p>
+                <div id="v_statCat" class="small fw-bold" style="color:var(--green);min-height:1.2em;"></div>
+                <button class="btn btn-outline-primary btn-sm mt-1" onclick="document.getElementById('v_fileCat').click()">Seleccionar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Colmap Ref -->
+          <div class="card mb-3" id="v_colmapRef" style="display:none;">
+            <div class="card-body py-3">
+              <label class="form-label mb-1">Columna con las referencias bibliográficas:</label>
+              <select id="v_colRef" class="form-select form-select-sm"></select>
+              <div id="v_prevRef" class="text-muted small mt-2 border-start border-primary ps-2" style="line-height:1.5;"></div>
+            </div>
+          </div>
+
+          <!-- Colmap Cat -->
+          <div class="card mb-3" id="v_colmapCat" style="display:none;">
+            <div class="card-body py-3">
+              <div class="row g-2">
+                <div class="col-6 col-md-3"><label class="form-label mb-1">Título</label><select id="v_colTit" class="form-select form-select-sm"></select></div>
+                <div class="col-6 col-md-3"><label class="form-label mb-1">Autor</label><select id="v_colAut" class="form-select form-select-sm"></select></div>
+                <div class="col-6 col-md-3"><label class="form-label mb-1">Ejemplares</label><select id="v_colEjem" class="form-select form-select-sm"></select></div>
+                <div class="col-6 col-md-3"><label class="form-label mb-1">Año</label><select id="v_colAnio" class="form-select form-select-sm"></select></div>
+              </div>
+              <div class="alert alert-warning py-1 px-2 mt-2 mb-0 small">⚠️ El año del catálogo debe ser <strong>igual o superior</strong> al año de la referencia para que cuente como válido.</div>
+            </div>
+          </div>
+
+          <!-- Preview tabla parsing -->
+          <div class="card mb-3" id="v_ptableWrap" style="display:none;">
+            <div class="card-body py-3">
+              <h6 class="mb-2" style="font-size:.82rem;font-weight:700;color:var(--muted);">🔍 Vista previa del parsing (primeras 3 referencias)</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0" style="font-size:.72rem;">
+                  <thead class="table-light"><tr><th>Referencia</th><th>Apellidos extraídos</th><th>Palabras clave título</th></tr></thead>
+                  <tbody id="v_previewBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones + progreso -->
+          <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-primary" id="v_btnStart" style="display:none;">⚡ PROCESAR REFERENCIAS</button>
+            <button class="btn btn-outline-danger" id="v_btnStop" style="display:none;">⏹ Detener</button>
+          </div>
+          <div id="v_progWrap" style="display:none;" class="mb-3">
+            <div class="progress mb-1" style="height:6px;">
+              <div id="v_pFill" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width:0%;"></div>
+            </div>
+            <small id="v_pTxt" class="text-muted" style="font-family:'DM Mono',monospace;font-size:.7rem;">Procesando...</small>
+          </div>
+
+          <!-- Resultados -->
+          <div id="v_results" style="display:none;">
+            <!-- Métricas -->
+            <div class="row g-2 mb-3" id="v_metricsGrid"></div>
+
+            <!-- Filtros -->
+            <div class="d-flex gap-2 mb-2 flex-wrap align-items-end">
+              <div>
+                <label class="form-label mb-1" style="font-size:.65rem;">Estado</label>
+                <select class="form-select form-select-sm" id="v_fEst" style="width:180px;"><option value="">Todos los estados</option></select>
+              </div>
+              <div>
+                <label class="form-label mb-1" style="font-size:.65rem;">Buscar texto</label>
+                <input type="text" class="form-control form-control-sm" id="v_fSearch" placeholder="Referencia o título..." style="width:220px;">
+              </div>
+              <span class="text-muted small pb-1" id="v_cntLbl" style="font-family:'DM Mono',monospace;font-size:.7rem;"></span>
+            </div>
+
+            <!-- Tabla resultados -->
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover table-sm">
+                <thead style="background:var(--navy);">
+                  <tr>
+                    <th style="color:rgba(255,255,255,.7);font-size:.58rem;letter-spacing:.08em;">#</th>
+                    <th onclick="v_srt('ref')" style="color:rgba(255,255,255,.7);font-size:.58rem;letter-spacing:.08em;cursor:pointer;">REFERENCIA ↕</th>
+                    <th onclick="v_srt('estado')" style="color:rgba(255,255,255,.7);font-size:.58rem;letter-spacing:.08em;cursor:pointer;">ESTADO ↕</th>
+                    <th onclick="v_srt('ejemplares')" style="color:rgba(255,255,255,.7);font-size:.58rem;letter-spacing:.08em;cursor:pointer;">EJEM. ↕</th>
+                    <th onclick="v_srt('titulo_cat')" style="color:rgba(255,255,255,.7);font-size:.58rem;letter-spacing:.08em;cursor:pointer;">TÍTULO CATÁLOGO ↕</th>
+                    <th onclick="v_srt('autor_cat')" style="color:rgba(255,255,255,.7);font-size:.58rem;letter-spacing:.08em;cursor:pointer;">AUTOR ↕</th>
+                    <th onclick="v_srt('score')" style="color:rgba(255,255,255,.7);font-size:.58rem;letter-spacing:.08em;cursor:pointer;">SCORE ↕</th>
+                    <th style="color:rgba(255,255,255,.7);font-size:.58rem;letter-spacing:.08em;">OBS.</th>
+                  </tr>
+                </thead>
+                <tbody id="v_tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-2 mb-3">
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="v_prevPage()" id="v_btnPrev">← Anterior</button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="v_nextPage()" id="v_btnNext">Siguiente →</button>
+              </div>
+              <span class="text-muted small" id="v_pageLbl" style="font-family:'DM Mono',monospace;font-size:.7rem;"></span>
+            </div>
+
+            <!-- Descargas -->
+            <div class="d-flex gap-2 justify-content-end flex-wrap">
+              <button class="btn btn-outline-primary btn-sm" id="v_btnDlAll">📥 Excel completo</button>
+              <button class="btn btn-outline-secondary btn-sm" id="v_btnDlNoEnc">📥 Solo no encontrados</button>
+              <button class="btn btn-warning btn-sm fw-bold" id="v_btnEnvCot" style="display:none;" onclick="v_enviarAlCotizador()">💰 Enviar no encontrados al Cotizador</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PESTAÑA 5 — COTIZADOR
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="cotizador-pane">
+      <h3 class="mb-1" style="font-family:'DM Sans',sans-serif;font-weight:700;color:var(--navy);">💰 Cotizador de Libros</h3>
+      <p class="text-muted mb-4">Abre automáticamente los sitios de cotización con la búsqueda lista.</p>
+      <div style="max-width:640px;margin:0 auto;">
+
+        <!-- Cola de no encontrados -->
+        <div id="cot_cola_wrap" class="cot-form mb-4" style="display:none;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <div style="font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;color:var(--navy);">📋 No encontrados en catálogo</div>
+              <div class="text-muted small">Cargados desde el Verificador · Haz clic en un libro para cotizarlo</div>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+              <span id="cot_cola_badge" class="badge" style="background:var(--accent-lt);color:var(--accent);font-family:'DM Mono',monospace;"></span>
+              <button onclick="cotizarTodaLaCola()" class="btn btn-primary btn-sm">⚡ Cotizar todos</button>
+              <button onclick="limpiarCola()" class="btn btn-outline-secondary btn-sm">✕ Limpiar</button>
+            </div>
+          </div>
+          <div id="cot_cola_list" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;"></div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="cot-form mb-4">
+          <div style="font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:4px;">Buscar precio de un libro</div>
+          <div class="text-muted small mb-3">Abre automáticamente los sitios de cotización con la búsqueda lista.</div>
+          <label class="form-label">ISBN (recomendado)</label>
+          <input type="text" id="cot_isbn" class="form-control mb-3" placeholder="Ej: 9788491050391">
+          <div class="row g-3 mb-3">
+            <div class="col-md-6"><label class="form-label">Título</label><input type="text" id="cot_titulo" class="form-control" placeholder="Ej: Cálculo diferencial..."></div>
+            <div class="col-md-6"><label class="form-label">Autor</label><input type="text" id="cot_autor" class="form-control" placeholder="Ej: Stewart, J."></div>
+          </div>
+          <!-- Sitios -->
+          <div style="background:var(--accent-lt);border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin-bottom:14px;">
+            <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Sitios de búsqueda</div>
+            <div class="d-flex gap-4 flex-wrap">
+              <label class="d-flex align-items-center gap-2" style="cursor:pointer;font-size:13px;"><input type="checkbox" id="cot_bookfinder" checked style="width:15px;height:15px;accent-color:var(--accent);"> BookFinder</label>
+              <label class="d-flex align-items-center gap-2" style="cursor:pointer;font-size:13px;"><input type="checkbox" id="cot_buscalibre" checked style="width:15px;height:15px;accent-color:var(--accent);"> BuscaLibre Chile</label>
+              <label class="d-flex align-items-center gap-2" style="cursor:pointer;font-size:13px;"><input type="checkbox" id="cot_amazon" style="width:15px;height:15px;accent-color:var(--accent);"> Amazon</label>
+              <label class="d-flex align-items-center gap-2" style="cursor:pointer;font-size:13px;"><input type="checkbox" id="cot_mercadolibre" style="width:15px;height:15px;accent-color:var(--accent);"> MercadoLibre</label>
+            </div>
+          </div>
+          <!-- Intervalo -->
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <span class="small text-muted text-nowrap">Intervalo entre pestañas: <strong id="cot_intervalo_lbl">3s</strong></span>
+            <input type="range" id="cot_intervalo" min="2" max="10" value="3" oninput="document.getElementById('cot_intervalo_lbl').textContent=this.value+'s'" class="flex-grow-1" style="accent-color:var(--accent);">
+          </div>
+          <button onclick="cotizarLibro()" class="btn btn-primary w-100 py-2 fw-bold">🔍 Buscar precios</button>
+        </div>
+
+        <!-- Progreso cotizador -->
+        <div id="cot_prog" class="cot-form mb-3" style="display:none;">
+          <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;" id="cot_prog_txt">Abriendo...</div>
+          <div class="progress" style="height:6px;">
+            <div id="cot_prog_fill" class="progress-bar bg-primary" style="width:0%;transition:width .3s;"></div>
+          </div>
+        </div>
+
+        <!-- Historial -->
+        <div id="cot_historial_wrap" class="cot-form" style="display:none;">
+          <div style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">Búsquedas recientes</div>
+          <div id="cot_historial_list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PESTAÑA 6 — DISPONIBILIDAD (manual)
+    ════════════════════════════════════════ -->
+    <div class="tab-pane fade" id="disponibilidad-pane">
+      <h3 class="mb-1" style="font-family:'DM Sans',sans-serif;font-weight:700;color:#0d6efd;">🔍 Panel de Disponibilidad</h3>
+      <p class="text-muted mb-4">Consulta manual del catálogo — complementa el Verificador automático.</p>
+      <div class="alert" style="background:#eef4ff;border-color:#c2d4f5;color:var(--navy);border-left:4px solid #0d6efd;border-radius:8px;" class="d-flex gap-3 align-items-start mb-4">
+        <span style="font-size:1.4rem;">💡</span>
+        <div><strong>¿Cómo funciona?</strong><br>Ingresa las referencias manualmente o cárgalas desde el Gestor. Luego haz clic en <strong>"Buscar en catálogo"</strong> — se abre el catálogo. Marca el resultado y genera el informe final.<br><small class="text-muted">Para verificación automática en lote, usa la pestaña <strong>📊 Verificador de Catálogo</strong>.</small></div>
+      </div>
+      <div class="card mb-4 border-light bg-light">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div><h6 class="mb-0">Cargar desde el Gestor Principal</h6><small class="text-muted">Importa automáticamente las referencias ya cargadas en el Gestor APA 7</small></div>
+            <button class="btn btn-primary btn-sm" onclick="disp_cargarDesdeGestor()">📥 Importar desde Gestor</button>
+          </div>
+        </div>
+      </div>
+      <div class="card mb-4">
+        <div class="card-body">
+          <h6 class="mb-3">Agregar libro manualmente</h6>
+          <div class="row g-2">
+            <div class="col-md-5"><input type="text" id="disp_titulo" class="form-control" placeholder="Título del libro *"></div>
+            <div class="col-md-4"><input type="text" id="disp_autor" class="form-control" placeholder="Autor (opcional)"></div>
+            <div class="col-md-2"><input type="text" id="disp_anio" class="form-control" placeholder="Año"></div>
+            <div class="col-md-1"><button class="btn btn-success w-100" onclick="disp_agregarManual()">+</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="table-responsive mb-3">
+        <table class="table table-bordered table-hover" id="disp_tabla">
+          <thead class="table-dark">
+            <tr><th width="35%">Título</th><th width="22%">Autor</th><th width="7%">Año</th><th width="16%">Buscar en catálogo</th><th width="13%">Disponibilidad</th><th width="7%">Acción</th></tr>
+          </thead>
+          <tbody id="disp_tbody"><tr><td colspan="6" class="text-center text-muted py-4">Aún no hay libros en la lista.</td></tr></tbody>
+        </table>
+      </div>
+      <div id="disp_resumen" style="display:none;" class="mb-3">
+        <div class="row g-3 text-center mb-3">
+          <div class="col-md-3"><div class="p-3 rounded" style="background:#d1e7dd;border:1px solid #a3cfbb;"><div class="fw-bold fs-4" id="disp_cnt_disponible">0</div><small class="text-success fw-bold">✅ Disponible</small></div></div>
+          <div class="col-md-3"><div class="p-3 rounded" style="background:#fff3cd;border:1px solid #ffe69c;"><div class="fw-bold fs-4" id="disp_cnt_prestado">0</div><small class="text-warning fw-bold">🟡 Prestado / Revisar</small></div></div>
+          <div class="col-md-3"><div class="p-3 rounded" style="background:#f8d7da;border:1px solid #f1aeb5;"><div class="fw-bold fs-4" id="disp_cnt_noesta">0</div><small class="text-danger fw-bold">🔴 No está en catálogo</small></div></div>
+          <div class="col-md-3"><div class="p-3 rounded" style="background:#e2e3e5;border:1px solid #c4c5c7;"><div class="fw-bold fs-4" id="disp_cnt_sin">0</div><small class="text-muted fw-bold">⬜ Sin verificar</small></div></div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-success" onclick="disp_exportarExcel()">📥 Descargar informe Excel</button>
+          <button class="btn btn-outline-danger" onclick="disp_limpiar()">🗑️ Limpiar lista</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-content -->
+</div><!-- /main-container -->
+
+<!-- ══ MODAL MANUAL ══ -->
+<div class="modal fade" id="manualModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--navy);">
+        <h5 class="modal-title text-white">📖 Manual de Uso — Suite Académica v5.0</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body modal-manual-body">
+        <div class="manual-step-box"><h5 class="text-primary mb-2">🛠️ Gestor APA 7</h5><p>Crea referencias en formato APA 7 manual o automáticamente por ISBN/DOI. Exporta en planilla oficial institucional.</p></div>
+        <div class="manual-step-box"><h5 class="text-success mb-2">📂 Extractor Masivo</h5><p>Carga programas PDF/Word y extrae bibliografía automáticamente. Detecta secciones Básica/Complementaria.</p></div>
+        <div class="manual-step-box"><h5 style="color:#6610f2;" class="mb-2">📚 Importador Zotero/Mendeley</h5><p>Importa archivos .RIS o .BIB y convierte a APA 7. Agrupa por asignatura antes de enviar al Gestor.</p></div>
+        <div class="manual-step-box"><h5 style="color:var(--navy);" class="mb-2">📊 Verificador de Catálogo</h5><p>Carga el Excel de referencias y el catálogo KOHA. El algoritmo cruza automáticamente por autor + palabras clave del título, filtrando por año (el catálogo debe ser ≥ al año de la referencia). Suma ejemplares de todas las ediciones válidas del mismo título. Envía los "No Encontrados" al Cotizador con un clic.</p></div>
+        <div class="manual-step-box"><h5 style="color:var(--gold);" class="mb-2">💰 Cotizador</h5><p>Busca precios en BookFinder, BuscaLibre, Amazon y MercadoLibre. Se puede usar de forma manual o recibir la cola de libros no encontrados desde el Verificador.</p></div>
+        <div class="manual-step-box" style="border-left-color:#198754;"><h5 class="text-success mb-2">✅ Flujo recomendado</h5><p class="mb-1"><strong>Auditoría completa:</strong></p><p class="text-muted small">Extractor Masivo → Gestor → Verificador de Catálogo → Cotizador (para los no encontrados)</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal editar/partir referencia ── -->
+<div class="modal fade" id="editRefModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--navy);">
+        <h5 class="modal-title text-white" id="editRefModalTitle">✏️ Editar referencia</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Modo editar -->
+        <div id="editRefModoEditar">
+          <label class="form-label fw-bold">Referencia:</label>
+          <textarea id="editRefTexto" class="form-control" rows="4" style="font-size:13px;font-family:'Inter',sans-serif;"></textarea>
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary" onclick="ext_guardarEdicion()">💾 Guardar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+        <!-- Modo partir -->
+        <div id="editRefModoPartir" style="display:none;">
+          <p class="text-muted small mb-2">Edita las dos referencias resultantes. La línea de separación marca el corte.</p>
+          <label class="form-label fw-bold">Referencia 1:</label>
+          <textarea id="partirRef1" class="form-control mb-2" rows="3" style="font-size:13px;font-family:'Inter',sans-serif;"></textarea>
+          <label class="form-label fw-bold">Referencia 2:</label>
+          <textarea id="partirRef2" class="form-control" rows="3" style="font-size:13px;font-family:'Inter',sans-serif;"></textarea>
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-warning fw-bold" onclick="ext_guardarParticion()">✂️ Partir en dos</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPT 1 — GESTOR APA 7
+══════════════════════════════════════════════════════════ -->
+<script>
+let gestor_refs = [];
+const gestor_campos = {
+  'libro':       [{id:'autor',l:'Autor(es)',p:'Apellido, N.'},{id:'anio',l:'Año',p:'2020'},{id:'titulo',l:'Título',p:''},{id:'editorial',l:'Editorial',p:'',opt:true},{id:'isbn',l:'ISBN',p:'Ej. 9781292027661',opt:true}],
+  'capitulo':    [{id:'autor',l:'Autor Capítulo',p:''},{id:'anio',l:'Año',p:''},{id:'tituloCap',l:'Título Capítulo',p:''},{id:'editor',l:'Editores',p:'In J. Doe (Ed.)'},{id:'tituloLibro',l:'Título Libro',p:''},{id:'paginas',l:'Páginas',p:'pp. 20-30'}],
+  'revista':     [{id:'autor',l:'Autor(es)',p:''},{id:'anio',l:'Año',p:''},{id:'tituloArt',l:'Título Artículo',p:''},{id:'revista',l:'Nombre Revista',p:''},{id:'volumen',l:'Vol.',p:'',opt:true},{id:'numero',l:'Núm.',p:'',opt:true},{id:'paginas',l:'Págs.',p:'',opt:true},{id:'doi',l:'DOI',p:'',opt:true}],
+  'web':         [{id:'autor',l:'Autor/Org',p:''},{id:'fecha',l:'Fecha',p:''},{id:'titulo',l:'Título Web',p:''},{id:'sitio',l:'Sitio',p:''},{id:'url',l:'URL',p:''}],
+  'youtube':     [{id:'autor',l:'Canal',p:''},{id:'fecha',l:'Fecha',p:''},{id:'titulo',l:'Título Video',p:''},{id:'url',l:'URL',p:''}],
+  'ia':          [{id:'autor',l:'Autor',p:''},{id:'anio',l:'Año',p:''},{id:'modelo',l:'Modelo',p:'ChatGPT'},{id:'url',l:'URL',p:''}],
+  'tesis':       [{id:'autor',l:'Autor',p:'Apellido, N.'},{id:'anio',l:'Año',p:''},{id:'titulo',l:'Título de la tesis',p:''},{id:'nivelTesis',l:'Nivel',p:'Tesis de maestría'},{id:'institucion',l:'Institución',p:'Universidad de...'},{id:'pais',l:'País',p:'Chile',opt:true}],
+  'informe':     [{id:'autor',l:'Autor / Institución',p:''},{id:'anio',l:'Año',p:''},{id:'titulo',l:'Título del informe',p:''},{id:'numInforme',l:'N.º de informe',p:'',opt:true},{id:'editorial',l:'Editorial / Institución',p:''}],
+  'conferencia': [{id:'autor',l:'Autor(es)',p:'Apellido, N.'},{id:'anio',l:'Año',p:''},{id:'titulo',l:'Título de la ponencia',p:''},{id:'evento',l:'Nombre del evento',p:''},{id:'ciudad',l:'Ciudad, País',p:'',opt:true}]
+};
+
+function gestor_actualizarFormulario() {
+  const tipo = document.getElementById('tipoRecurso').value;
+  const div = document.getElementById('camposDinamicos');
+  div.innerHTML = '';
+  if(!tipo||!gestor_campos[tipo]) return;
+  gestor_campos[tipo].forEach(c => {
+    div.innerHTML += `<div class="col-md-6"><label class="form-label">${c.l} ${c.opt?'<small class="text-muted">(Opcional)</small>':'<span class="req-star">*</span>'}</label><input type="text" class="form-control" id="g_${c.id}" placeholder="${c.p}"></div>`;
+  });
+}
+
+function limpiarDatosProfundo(titulo, autor, editorial, fecha) {
+  let t=titulo||'',a=autor||'',e=editorial||'',f=fecha||'';
+  t=t.replace(/\b(PKG|PGK|PACK|PACKAGE|&.*ACC.*|MYMATHLAB.*|ACCESS.*CARD|\+.*CD)\b/gi,' ').trim();
+  t=t.replace(/^[\s&\-\+\.]+|[\s&\-\+\.]+$/g,'');
+  if(!/[a-z]/.test(t)&&/[A-Z]/.test(t)) t=t.toLowerCase().replace(/(?:^|\s|["'([{])+\S/g,m=>m.toUpperCase());
+  if(a&&!/[a-z]/.test(a)&&/[A-Z]/.test(a)) a=a.toLowerCase().replace(/(?:^|\s|["'([{])+\S/g,m=>m.toUpperCase());
+  const ym=f.match(/\b(19|20)\d{2}\b/); f=ym?ym[0]:f;
+  const bad=['PEARSON','CENGAGE','MCGRAW-HILL','MCGRAW HILL','WILEY','OXFORD UNIVERSITY PRESS','EDITORIAL','PEARSON EDUCATION','ADDISON-WESLEY','PRENTICE HALL','PRENTICE-HALL'];
+  const aU=a.toUpperCase().trim();
+  if(bad.some(b=>aU===b||aU.startsWith(b+',')|| (aU.startsWith(b+' ')&&!a.includes(',')))) a='';
+  return{titulo:t,autor:a,editorial:e,anio:f};
+}
+
+async function gestor_buscarMetadatos() {
+  const input=document.getElementById('inputMagic').value.trim();
+  const btn=document.getElementById('btnBuscar');
+  if(!input) return alert("Ingresa DOI o ISBN");
+  btn.innerHTML='⌛ Buscando...'; btn.disabled=true;
+  try {
+    const isDoi=input.includes('10.')&&input.includes('/');
+    const clean=input.replace(/https?:\/\/(dx\.)?doi\.org\//,'').trim();
+    const cleanIsbn=input.replace(/[-\s]/g,'');
+    let data=null,tipo='';
+    if(isDoi){
+      try{
+        const r=await fetch(`https://api.crossref.org/works/${clean}`);
+        if(r.ok){const j=(await r.json()).message;tipo='revista';data={autor:j.author?.map(a=>`${a.family}, ${a.given?.[0]}.`).join(' & '),anio:j.published?.['date-parts']?.[0]?.[0],tituloArt:j.title?.[0],revista:j['container-title']?.[0],volumen:j.volume,numero:j.issue,paginas:j.page,doi:`https://doi.org/${j.DOI}`};}
+        else throw new Error();
+      }catch(e){
+        const r2=await fetch(`https://api.datacite.org/dois/${clean}`);
+        if(!r2.ok) throw new Error("No encontrado");
+        const j2=(await r2.json()).data.attributes;
+        tipo='revista';data={tituloArt:j2.titles?.[0]?.title,autor:j2.creators?.map(c=>c.name).join(' & '),anio:j2.publicationYear,revista:j2.publisher||'arXiv',doi:`https://doi.org/${j2.doi}`};
+      }
+    } else {
+      let rawData=null;
+      try{
+        const rOL=await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${cleanIsbn}&jscmd=data&format=json`);
+        const jOL=await rOL.json();const key=`ISBN:${cleanIsbn}`;
+        if(jOL[key]){const i=jOL[key];const d=limpiarDatosProfundo(i.title,i.authors?.map(a=>a.name).join(' & '),i.publishers?.[0]?.name,i.publish_date);if(d.titulo)rawData={fuente:'OL',...d};}
+      }catch(e){}
+      if(!rawData||!rawData.autor){
+        try{
+          let rG=await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}&langRestrict=es`);
+          let jG=await rG.json();
+          if(!jG.items){rG=await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${cleanIsbn}`);jG=await rG.json();}
+          if(jG.items){
+            const esItem=jG.items.find(it=>it.volumeInfo?.language==='es')||jG.items[0];
+            const info=esItem.volumeInfo;
+            const gData=limpiarDatosProfundo(info.title,info.authors?.join(' & '),info.publisher,info.publishedDate);
+            if(!rawData){rawData={fuente:'GB',...gData};}
+            else{if(!rawData.autor&&gData.autor)rawData.autor=gData.autor;if(!rawData.anio&&gData.anio)rawData.anio=gData.anio;if(!rawData.editorial&&gData.editorial)rawData.editorial=gData.editorial;}
+          }
+        }catch(e){}
+      }
+      if(rawData&&rawData.titulo){tipo='libro';data={titulo:rawData.titulo,autor:rawData.autor,anio:rawData.anio,editorial:rawData.editorial};}
+      else throw new Error("ISBN no encontrado en ninguna fuente.");
+    }
+    if(data){
+      document.getElementById('tipoRecurso').value=tipo;
+      gestor_actualizarFormulario();
+      setTimeout(()=>{
+        for(let k in data){const el=document.getElementById(`g_${k}`);if(el){if(k==='titulo'||k==='tituloArt')el.value=limpiarDatosProfundo(data[k],'','','').titulo;else if(k==='autor')el.value=limpiarDatosProfundo('',data[k],'','').autor;else el.value=data[k]||'';}}
+        if(!isDoi){const isbnEl=document.getElementById('g_isbn');if(isbnEl)isbnEl.value=cleanIsbn;}
+        const autorEnPantalla=document.getElementById('g_autor')?.value||'';
+        if(autorEnPantalla==='')alert("⚠️ El autor no se encontró. Por favor ingrésalo manualmente.");
+        else alert("✅ ¡Datos encontrados!");
+      },100);
+    }
+  }catch(e){alert("Error: "+e.message);}
+  finally{btn.innerHTML='🪄 Buscar y Rellenar';btn.disabled=false;}
+}
+
+function gestor_agregarReferencia(){
+  const tipo=document.getElementById('tipoRecurso').value;if(!tipo)return;
+  const g=(id)=>{const el=document.getElementById(`g_${id}`);return el?el.value.trim():'';};
+  let ref='';
+  if(tipo==='libro') ref=`${g('autor')} (${g('anio')}). <i>${g('titulo')}</i>. ${g('editorial')}.`;
+  else if(tipo==='capitulo'){const p=g('paginas')?`, ${g('paginas')}`:'';ref=`${g('autor')} (${g('anio')}). ${g('tituloCap')}. ${g('editor')}, <i>${g('tituloLibro')}</i>${p}. `;}
+  else if(tipo==='revista') ref=`${g('autor')} (${g('anio')}). ${g('tituloArt')}. <i>${g('revista')}</i>. ${g('doi')}`;
+  else if(tipo==='tesis'){const p=g('pais')?`, ${g('pais')}`:'';ref=`${g('autor')} (${g('anio')}). <i>${g('titulo')}</i> [${g('nivelTesis')}]. ${g('institucion')}${p}.`;}
+  else if(tipo==='informe'){const n=g('numInforme')?` (${g('numInforme')})`:'';;ref=`${g('autor')} (${g('anio')}). <i>${g('titulo')}</i>${n}. ${g('editorial')}.`;}
+  else if(tipo==='conferencia'){const c=g('ciudad')?`, ${g('ciudad')}`:'';ref=`${g('autor')} (${g('anio')}). <i>${g('titulo')}</i>. ${g('evento')}${c}.`;}
+  else ref=`${g('autor')} (${g('fecha')||g('anio')}). <i>${g('titulo')||g('tituloCap')}</i>. ${g('url')}`;
+  ref=ref.trim().replace(/\s*\.+\s*\.+/g,'.');if(!ref.endsWith('.'))ref+='.';if(ref.startsWith(" ("))ref=ref.substring(1);
+  const isbnEl=document.getElementById('g_isbn');const isbn=isbnEl?isbnEl.value.trim():'';
+  gestor_refs.push({Carrera:document.getElementById('g_carrera').value,Clave:document.getElementById('g_clave').value,Asignatura:document.getElementById('g_nombre').value,Tipo:document.getElementById('tipoBiblio').value,Referencia:ref,ISBN:isbn});
+  gestor_renderTabla();
+  document.getElementById('camposDinamicos').innerHTML='';
+  document.getElementById('tipoRecurso').value='';
+}
+
+function gestor_renderTabla(){
+  const tbody=document.querySelector('#tablaGestor tbody');tbody.innerHTML='';
+  gestor_refs.forEach((r,i)=>tbody.innerHTML+=`<tr><td>${r.Tipo}</td><td>${r.Referencia}</td><td><small class="text-muted">${r.ISBN||'—'}</small></td><td><button class="btn btn-sm btn-danger" onclick="gestor_eliminar(${i})">X</button></td></tr>`);
+}
+function gestor_eliminar(i){gestor_refs.splice(i,1);gestor_renderTabla();}
+
+// ── Helper compartido: construye la hoja planilla institucional ──────────────
+// Estructura: tipo en misma fila que primera ref, A/B fusionados por asignatura,
+// C fusionado por tipo, sin filas separadoras — igual al template institucional
+function buildPlanillaWS(grupos, carrera){
+  var ws={}, merges=[], fila=5;
+
+  // Estilos SheetJS (font/border/alignment)
+  var TH={style:'thin'};
+  var BRD={top:TH,bottom:TH,left:TH,right:TH};
+  var F10={name:'Arial',sz:10};
+  function cell(v,bold,hAlign,wrap,obs){
+    var c={v:v===null||v===undefined?'':v,t:'s'};
+    c.s={font:Object.assign({},F10,{bold:!!bold}),border:BRD,
+         alignment:{horizontal:hAlign||'left',vertical:'center',wrapText:!!wrap}};
+    return c;
+  }
+
+  // Cabecera fila 1
+  ws['A1']=cell('Carrera o Programa: '+carrera,true,'left',false);
+  // Fila 2 — encabezados columnas
+  ws['A2']=cell('Clave Asignatura',true,'center',false);
+  ws['B2']=cell('Nombre Asignatura',true,'center',true);
+  ws['C2']=cell('Tipo Bibliografía',true,'center',false);
+  ws['D2']=cell('Referencias',true,'center',true);
+  ws['E2']=cell('Disponibilidad en Bibliotecas',true,'center',false);
+  ws['J2']=cell('Observaciones',true,'center',false);
+  ws['K2']=cell('Proveedor',true,'center',false);
+  ws['L2']=cell('Valor pesos',true,'center',false);
+  // Fila 3
+  ws['E3']=cell('LIBROS N° de ejemplares (cantidad - año)',true,'center',true);
+  ws['I3']=cell('Artículo Científico Disponible en (papel - on line)',true,'center',true);
+  // Fila 4
+  ws['E4']=cell('Btca UA',true,'center',false);
+  ws['F4']=cell('Otras Btcas',true,'center',false);
+  ws['G4']=cell('Total',true,'center',false);
+  ws['H4']=cell('Disponible on line URL',true,'center',false);
+
+  // Celdas vacías con borde en cabeceras (columnas sin valor explícito)
+  ['F2','G2','H2','I2','F3','G3','H3','I4'].forEach(function(a){ws[a]=cell('',false,'center',false);});
+
+  // ── Datos ────────────────────────────────────────────────────────────────
+  Object.values(grupos).forEach(function(g){
+    var totalRefs=g.basica.length+g.complementaria.length;
+    if(!totalRefs)return;
+    var grupoStart=fila;
+
+    // Bloque básica
+    if(g.basica.length){
+      var basicaStart=fila;
+      g.basica.forEach(function(r,i){
+        var rl=(r.ref||r.Referencia||'').replace(/<[^>]*>?/gm,'').replace(/\s*\.+\s*\.+/g,'.').trim();
+        if(i===0){
+          ws['A'+fila]=cell(g.clave||'',true,'center',true);
+          ws['B'+fila]=cell(g.asignatura||g.nombre||'',true,'center',true);
+          ws['C'+fila]=cell('básica',true,'center',false);
+        }
+        ws['D'+fila]=cell(rl,false,'left',true);
+        ws['E'+fila]=cell(r.ISBN||'',false,'center',false);
+        ws['F'+fila]=cell('',false,'center',false);
+        ws['G'+fila]=cell('',false,'center',false);
+        ws['H'+fila]=cell('',false,'left',false);
+        ws['I'+fila]=cell('',false,'left',false);
+        var obs=(r.Observaciones||r.status&&r.status.msg&&r.status.level!=='success'&&r.status.msg||'');
+        ws['J'+fila]=cell(obs,false,'left',false);
+        ws['K'+fila]=cell('',false,'left',false);
+        ws['L'+fila]=cell('',false,'right',false);
+        fila++;
+      });
+      if(g.basica.length>1)merges.push({s:{r:basicaStart-1,c:2},e:{r:fila-2,c:2}});
+    }
+
+    // Bloque complementaria
+    if(g.complementaria.length){
+      var compStart=fila;
+      g.complementaria.forEach(function(r,i){
+        var rl=(r.ref||r.Referencia||'').replace(/<[^>]*>?/gm,'').replace(/\s*\.+\s*\.+/g,'.').trim();
+        if(i===0) ws['C'+fila]=cell('complementaria',true,'center',false);
+        ws['D'+fila]=cell(rl,false,'left',true);
+        ws['E'+fila]=cell(r.ISBN||'',false,'center',false);
+        ws['F'+fila]=cell('',false,'center',false);
+        ws['G'+fila]=cell('',false,'center',false);
+        ws['H'+fila]=cell('',false,'left',false);
+        ws['I'+fila]=cell('',false,'left',false);
+        var obs=(r.Observaciones||r.status&&r.status.msg&&r.status.level!=='success'&&r.status.msg||'');
+        ws['J'+fila]=cell(obs,false,'left',false);
+        ws['K'+fila]=cell('',false,'left',false);
+        ws['L'+fila]=cell('',false,'right',false);
+        fila++;
+      });
+      if(g.complementaria.length>1)merges.push({s:{r:compStart-1,c:2},e:{r:fila-2,c:2}});
+    }
+
+    // Fusionar A y B para todo el grupo
+    if(totalRefs>1){
+      merges.push({s:{r:grupoStart-1,c:0},e:{r:fila-2,c:0}});
+      merges.push({s:{r:grupoStart-1,c:1},e:{r:fila-2,c:1}});
+    }
+  });
+
+  // Fusiones de cabecera
+  merges.unshift(
+    {s:{r:0,c:0},e:{r:0,c:11}},   // A1:L1 Carrera
+    {s:{r:1,c:4},e:{r:1,c:8}},    // E2:I2 Disponibilidad
+    {s:{r:1,c:0},e:{r:3,c:0}},    // A2:A4
+    {s:{r:1,c:1},e:{r:3,c:1}},    // B2:B4
+    {s:{r:1,c:2},e:{r:3,c:2}},    // C2:C4
+    {s:{r:1,c:3},e:{r:3,c:3}},    // D2:D4
+    {s:{r:1,c:9},e:{r:3,c:9}},    // J2:J4
+    {s:{r:1,c:10},e:{r:3,c:10}},  // K2:K4
+    {s:{r:1,c:11},e:{r:3,c:11}},  // L2:L4
+    {s:{r:2,c:4},e:{r:2,c:7}}     // E3:H3
+  );
+
+  ws['!merges']=merges;
+  ws['!cols']=[{wch:16.9},{wch:30.9},{wch:16.9},{wch:51.1},{wch:9.5},{wch:8.8},{wch:7.9},{wch:17.2},{wch:19.2},{wch:17.8},{wch:16.8},{wch:12}];
+  ws['!ref']='A1:L'+(fila-1);
+  return ws;
+}
+
+function gestor_exportarExcel(){
+  if(!gestor_refs.length)return alert("Sin datos");
+  const wb=XLSX.utils.book_new();
+  const carrera=gestor_refs.find(r=>r.Carrera&&r.Carrera.trim())?.Carrera?.trim()||'';
+  const grupos={};
+  gestor_refs.forEach(r=>{
+    const clave=(r.Clave||'').trim(),asig=(r.Asignatura||'').trim(),key=clave+'||'+asig;
+    if(!grupos[key])grupos[key]={clave,asignatura:asig,nombre:asig,basica:[],complementaria:[]};
+    if((r.Tipo||'').toLowerCase().includes('comp'))grupos[key].complementaria.push(r);
+    else grupos[key].basica.push(r);
+  });
+  const ws=buildPlanillaWS(grupos,carrera);
+  XLSX.utils.book_append_sheet(wb,ws,'Bibliografías');
+  XLSX.writeFile(wb,'Bibliografia_'+(carrera||'Biblioteca')+'.xlsx');
+}
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPT 2 — EXTRACTOR MASIVO
+══════════════════════════════════════════════════════════ -->
+<script>
+// PDF.js — configurar worker con fallback para file:// y navegadores modernos
+(function(){
+  var workerUrl='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  try{
+    // En file:// el worker CORS falla — usar fake worker (más lento pero funcional)
+    if(window.location.protocol==='file:'){
+      pdfjsLib.GlobalWorkerOptions.workerSrc=workerUrl;
+      // Forzar modo sin worker separado si falla
+    } else {
+      pdfjsLib.GlobalWorkerOptions.workerSrc=workerUrl;
+    }
+  }catch(e){
+    pdfjsLib.GlobalWorkerOptions.workerSrc=workerUrl;
+  }
+})();
+let ext_datos=[],ext_filesProcesados=new Set();
+// Orden de selección de archivos — garantiza que la tabla y el Excel
+// respetan el orden en que el usuario subió los archivos (1er semestre primero)
+let ext_ordenArchivos=[];
+// Registro de estado por archivo: {nombre, estado:'procesando'|'ok'|'sinrefs'|'error', refs, msg}
+let ext_archivos={};
+
+function ext_updateContador(){
+  const panel=document.getElementById('ext_contadorPanel');
+  const lista=document.getElementById('ext_archivosList');
+  const archivos=Object.values(ext_archivos);
+  if(!archivos.length){panel.style.display='none';return;}
+  panel.style.display='block';
+  const ok    =archivos.filter(a=>a.estado==='ok').length;
+  const warn  =archivos.filter(a=>a.estado==='sinrefs').length;
+  const err   =archivos.filter(a=>a.estado==='error').length;
+  const proc  =archivos.filter(a=>a.estado==='procesando').length;
+  const total =archivos.length;
+  document.getElementById('cnt_ok').textContent   ='✓ '+ok+' OK';
+  document.getElementById('cnt_warn').textContent ='⚠ '+warn+' sin refs';
+  document.getElementById('cnt_err').textContent  ='✕ '+err+' error';
+  document.getElementById('cnt_total').textContent=(ok+warn+err)+' / '+total+(proc?' ('+proc+' procesando…)':'');
+  lista.innerHTML=archivos.map(a=>{
+    const ic  =a.estado==='ok'?'✅':a.estado==='sinrefs'?'⚠️':a.estado==='error'?'❌':'⏳';
+    const col =a.estado==='ok'?'#d1fae5':a.estado==='sinrefs'?'#fef9c3':a.estado==='error'?'#fee2e2':'#f1f5f9';
+    const bc  =a.estado==='ok'?'#a7f3d0':a.estado==='sinrefs'?'#fde68a':a.estado==='error'?'#fca5a5':'#e2e8f0';
+    // Buscar sigla detectada para este archivo
+    const refsDeEsteArchivo=ext_datos.filter(d=>d.archivo===a.nombre);
+    const siglaDetectada=refsDeEsteArchivo.length?refsDeEsteArchivo[0].clave:'';
+    const sinSigla=refsDeEsteArchivo.length>0&&(!siglaDetectada||siglaDetectada==='—');
+    const infoBase=a.estado==='ok'?a.refs+' ref'+(a.refs!==1?'s':''):a.estado==='sinrefs'?('⚠ '+(a.msg||'Sin bibliografía detectada')):a.estado==='error'?a.msg:'Procesando...';
+    const infoSigla=siglaDetectada&&siglaDetectada!=='—'?` · <strong>${siglaDetectada}</strong>`:(sinSigla?' · <span style="color:#c2410c;font-weight:700;">⚠ sin sigla</span>':'');
+    const infoCol=a.estado==='ok'?'#065f46':a.estado==='sinrefs'?'#92400e':a.estado==='error'?'#991b1b':'#64748b';
+    const rowBg=sinSigla?'#fff7ed':col;
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);background:${rowBg};">
+      <span style="font-size:15px;">${ic}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${a.nombre}">${a.nombre}</div>
+        <div style="font-size:11px;color:${infoCol};">${infoBase}${infoSigla}</div>
+      </div>
+      <span style="font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid ${bc};color:${infoCol};white-space:nowrap;font-family:'DM Mono',monospace;">${a.tipo||''}</span>
+    </div>`;
+  }).join('');
+}
+const dropZone=document.getElementById('dropZone'),fileInput=document.getElementById('fileInput');
+dropZone.addEventListener('dragover',(e)=>{e.preventDefault();dropZone.classList.add('drag');});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop',(e)=>{e.preventDefault();dropZone.classList.remove('drag');ext_procesarArchivos(e.dataTransfer.files);});
+fileInput.addEventListener('change',(e)=>ext_procesarArchivos(e.target.files));
+
+function ext_procesarArchivos(files){
+  document.getElementById('statusLog').innerText=`Procesando ${files.length} archivo(s)...`;
+  Array.from(files).forEach(file=>{
+    if(ext_filesProcesados.has(file.name))return;
+    ext_filesProcesados.add(file.name);
+    // Registrar orden de selección
+    if(!ext_ordenArchivos.includes(file.name))ext_ordenArchivos.push(file.name);
+    const tipo=file.name.split('.').pop().toUpperCase();
+    // Registrar como "procesando"
+    ext_archivos[file.name]={nombre:file.name,estado:'procesando',refs:0,msg:'',tipo};
+    ext_updateContador();
+    const reader=new FileReader(),ext=file.name.split('.').pop().toLowerCase();
+    if(ext==='pdf'){
+      reader.onerror=function(){
+        ext_filesProcesados.delete(file.name);
+        ext_archivos[file.name]={nombre:file.name,estado:'error',refs:0,msg:'Error al leer el archivo',tipo};
+        ext_updateContador();
+      };
+      reader.onload=async function(){
+        document.getElementById('statusLog').innerText='Extrayendo texto de '+file.name+'...';
+        try{
+          const loadTask=pdfjsLib.getDocument({data:new Uint8Array(this.result),verbosity:0});
+          const pdf=await loadTask.promise;
+          let fullText='';
+          for(let i=1;i<=pdf.numPages;i++){
+            const page=await pdf.getPage(i),tc=await page.getTextContent();
+            let lastY=null,line='';const lines=[];
+            for(const item of tc.items){
+              if(!item.transform||typeof item.str!=='string')continue;
+              const y=Math.round(item.transform[5]);
+              if(lastY!==null&&Math.abs(y-lastY)>3){if(line.trim())lines.push(line.trim());line='';}
+              line+=item.str;lastY=y;
+            }
+            if(line.trim())lines.push(line.trim());
+            fullText+=lines.join('\n')+'\n';
+          }
+          const antesCount=ext_datos.length;
+          extraerYAcumular(fullText,file.name);
+          const refsExtraidas=ext_datos.length-antesCount;
+          ext_archivos[file.name]={nombre:file.name,estado:refsExtraidas>0?'ok':'sinrefs',refs:refsExtraidas,msg:'',tipo};
+          ext_updateContador();
+        }catch(e){
+          ext_filesProcesados.delete(file.name);
+          const msg=(e.message||String(e)).slice(0,60);
+          ext_archivos[file.name]={nombre:file.name,estado:'error',refs:0,msg,tipo};
+          ext_updateContador();
+          document.getElementById('statusLog').innerText='Error en '+file.name+': '+msg;
+          console.error(e);
+          alert('Error en "'+file.name+'": '+msg+'\n\nSi el PDF está protegido o escaneado (imagen), no puede procesarse.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }else if(ext==='docx'){
+      reader.onerror=function(){
+        ext_filesProcesados.delete(file.name);
+        ext_archivos[file.name]={nombre:file.name,estado:'error',refs:0,msg:'Error al leer el archivo',tipo};
+        ext_updateContador();
+      };
+      reader.onload=async function(){
+        document.getElementById('statusLog').innerText='Extrayendo texto de '+file.name+'...';
+        try{
+          const r=await mammoth.convertToHtml({arrayBuffer:this.result});
+          const antesCount=ext_datos.length;
+          _ext_diagMsg='';
+          extraerYAcumularDocx(r.value,file.name);
+          const refsExtraidas=ext_datos.length-antesCount;
+          ext_archivos[file.name]={nombre:file.name,estado:refsExtraidas>0?'ok':'sinrefs',refs:refsExtraidas,msg:refsExtraidas>0?'':(_ext_diagMsg||'Sin sección bibliografía reconocida'),tipo};
+          ext_updateContador();
+        }catch(e){
+          ext_filesProcesados.delete(file.name);
+          const msg=(e.message||String(e)).slice(0,60);
+          ext_archivos[file.name]={nombre:file.name,estado:'error',refs:0,msg,tipo};
+          ext_updateContador();
+          document.getElementById('statusLog').innerText='Error en '+file.name+': '+msg;
+          console.error(e);
+          alert('Error en "'+file.name+'": '+msg);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }else{
+      ext_filesProcesados.delete(file.name);
+      delete ext_archivos[file.name];
+      ext_updateContador();
+      alert('Formato no soportado: .'+ext+'\nSube archivos PDF o Word (.docx).');
+    }
+  });
+}
+
+// ── Utilidades globales compartidas entre ambos extractores ─────────────────
+function limpiarVineta(t){return String(t||'').replace(/^[\s•●\-\*✔✓►▪▸◆◉\uf0b7\uf0fc]+/,'').trim();}
+
+// ── splitRefMultiple: segunda pasada para bloques con múltiples refs ────────
+// Compartida por ambos extractores (PDF y DOCX)
+function splitRefMultiple(t){
+  t=t.trim();
+  // Caso A: call numbers (005.133 MAR 2018)
+  if(/\(\d{3}\.\d+\s+\w+\s+\d{4}\)/.test(t)){
+    const p=t.split(/\s*\(\d{3}\.\d+\s+\w+\s+\d{4}\)\s*/).filter(s=>s.trim().length>20);
+    if(p.length>1)return p.map(s=>s.replace(/^\s*\.\s*/,'').trim());
+  }
+  // Caso B: múltiples ISBNs (captura "ISBN 84- 2053438-2" con espacios/guiones)
+  const isbnRe=/\bISBN[\s:][\s\dX-]{6,22}/gi;
+  const isbnCount=(t.match(isbnRe)||[]).length;
+  if(isbnCount>1){
+    const parts=[];let cur='';
+    t.split(/(ISBN[\s:][\s\dX-]{6,22})/i).forEach(tok=>{
+      if(/^ISBN/i.test(tok)){cur+=tok;}
+      else if(cur&&/^\s*\.?\s*[A-ZÁÉÍÓÚÑÜ]/.test(tok)){parts.push(cur.trim());cur=tok.replace(/^\s*\.\s*/,'');}
+      else{cur+=tok;}
+    });
+    if(cur.trim())parts.push(cur.trim());
+    if(parts.length>1)return parts.filter(p=>p.trim().length>20).map(p=>p.trim());
+  }
+  // Caso C: Apellido I.: Título (≥2 ocurrencias)
+  if((t.match(/[A-ZÁÉÍÓÚÑÜ][a-z]+\s+[A-Z]\.(?:[A-Z]\.)?\s*:/g)||[]).length>=2){
+    const p=t.split(/\.\s+(?=[A-ZÁÉÍÓÚÑÜ][a-z]+\s+[A-Z]\.(?:[A-Z]\.)?\s*(?:[A-ZÁÉÍÓÚÑÜ][a-z]+\s+[A-Z]\.)?\s*:)/);
+    if(p.length>1)return p.filter(s=>s.trim().length>20).map(s=>s.trim());
+  }
+  // Caso D: ". Apellido [y Apellido]. "Título" — múltiples refs con comillas
+  {const p=t.split(/[.]\s+(?=[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]{1,15}(?:\s+[yY]\s+[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]{1,15})?\s*[.,]\s*["«\u201c])/).filter(s=>s.trim().length>20).map(s=>s.trim());if(p.length>1)return p;}
+  // Caso E: "edición. Autor" — split después de marcador de edición sin lookbehind
+  {
+    const partsE=[];let ultimo=0;
+    const reE=/(?:edici[oó]n\.?|ediciones\.?)\s+(?=[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]{1,15}\s)/gi;
+    let mE;
+    while((mE=reE.exec(t))!==null){
+      partsE.push(t.slice(ultimo,mE.index+mE[0].trimEnd().length).trim());
+      ultimo=mE.index+mE[0].length;
+    }
+    if(partsE.length){partsE.push(t.slice(ultimo).trim());const fE=partsE.filter(s=>s.trim().length>20).map(s=>s.trim());if(fE.length>1)return fE;}
+  }
+  return[t];
+}
+
+function extraerYAcumularDocx(html,filename){
+  const div=document.createElement('div');div.innerHTML=html;
+
+  // Metadatos: filas de tabla + párrafos
+  const filasTabla=Array.from(div.querySelectorAll('tr')).map(tr=>Array.from(tr.querySelectorAll('td,th')).map(td=>td.textContent.trim()).filter(t=>t).join(' ')).filter(t=>t.length>0);
+
+  // FIX 1: excluir <li> contenedores (tienen <ul>/<ol> hijos) para evitar textContent concatenado
+  // FIX 2: rastrear si cada elemento tiene marcador de viñeta (img incrustado o carácter de viñeta)
+  //        Los elementos con marcador señalan INICIO de nueva referencia
+  //        Los elementos sin marcador, en zona de bibliografía, son candidatos a continuación
+  const todosEls=Array.from(div.querySelectorAll('p,li,h1,h2,h3,h4,h5,h6'));
+  const items=todosEls
+    .filter(el=>!(el.tagName==='LI'&&el.querySelector('ul,ol')))
+    .map(el=>{
+      const text=el.textContent.trim();
+      // Marcador: <img> al inicio del innerHTML (viñeta como imagen) o carácter de viñeta
+      const raw=el.innerHTML.trimStart();
+      const tieneMarcador=raw.startsWith('<img')||/^[•●✔►▪▸◆◉✓]/.test(raw);
+      return{text,tieneMarcador};
+    })
+    .filter(it=>it.text.length>0);
+
+  const parrafos=items.map(it=>it.text);
+  let carrera='',nombre='';
+  // PRIMERO: sigla del nombre del archivo (más confiable)
+  const mfDocx=filename.match(/(?:^|[^A-Za-z])([A-Z]{2,6})\s*[-_]?\s*(\d{3,5})/);
+  let clave=mfDocx?(mfDocx[1]+' '+mfDocx[2]).toUpperCase():'';
+  const archivoFuente=filename;
+  [...filasTabla,...parrafos].forEach(p=>{
+    if(!clave){const m=p.match(/(?:Sigla|Código|Clave)[\s:\t,]+([A-Z]{2,6}\s*\d{3,5})/i);if(m)clave=m[1].trim();}
+    if(!nombre){const m=p.match(/^Nombre\s+(?:de\s+la\s+)?Asignatura[\s:\t]+(.+)/i)||p.match(/^Nombre\s+del?\s+Curso[\s:\t]+(.+)/i);if(m)nombre=m[1].trim().substring(0,100);}
+    if(!carrera){const m=p.match(/^Carrera[\s:\t]+(.+)/i);if(m)carrera=m[1].trim().substring(0,60);}
+  });
+  if(!nombre)nombre=filename.replace(/\.(pdf|docx)$/i,'').replace(/[-_]/g,' ').trim();
+
+  let enBiblio=false,tipoActual='Básica',enTipo=false;
+  const limpiarViñeta=t=>t.replace(/^[\s•●\-\*✔✓►▪▸◆◉]+/,'').trim();
+  const esTituloBiblio=t=>/(?:VI{1,3}\.?\s*)?(?:BIBLIOGRAFÍA|Referencias\s+Bibliográficas?|Textos?\s+Guías?|Material\s+Bibliográfico)(?:\s+Y\s+.+)?$/i.test(t.trim());
+  const esTipoBasica=t=>/(?:\d+\.\s*)?(?:Bibliografía\s+)?(?:Básica|Obligatoria|Recomendada\s+Básica)/i.test(t);
+  const esTipoComp=t=>/(?:\d+\.\s*)?(?:Bibliografía\s+)?(?:Complementaria|Adicional|Recomendada)/i.test(t);
+  const esRefEstricta=t=>{const tc=limpiarViñeta(t);return tc.length>35&&/\d{4}|s\.f\./.test(tc)&&/^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]{2,}[,;]/.test(tc);};
+  const esRefLaxa=t=>{const tc=limpiarViñeta(t),tn=tc.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();if(tc.length<=35)return false;if(/^https?:\/\/|^www\.|^ftp:/i.test(tc))return false;if(/comprar\s+https?:\/\//i.test(tc))return false;if(/https?:\/\/(www\.)?(amazon|buscalibre|mercadolibre|bookfinder|springer|wiley|tandfonline|researchgate)/i.test(tc))return false;if(/^\d+\.\s+[A-ZÁÉÍÓÚ]/.test(tc))return false;if(/^(?:Materiales|Cuaderno|Hojas|Data\s+show|Laboratorio|Aula|Apuntes|Sitio\s+web|Computador)/i.test(tc))return false;if(tn.startsWith('academico responsable')||tn.startsWith('fecha de ')||tn.includes('webgraf')||/^Otros\s+materiales/i.test(tc))return false;return true;};
+  const esFin=t=>{const tn=t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const tl=limpiarViñeta(t);const tc=tl.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();return /^(?:VIII|IX|X{1,3})[\.\s]/i.test(tl)||/^SOBRE\s+INTEGRIDAD/i.test(tl)||tn.startsWith('academico responsable')||tc.startsWith('academico responsable')||tn.startsWith('unidad responsable')||tn.startsWith('fecha de elaboracion')||tn.startsWith('fecha de actualizacion')||tn.startsWith('fecha de modificacion')||tn.includes('webgraf')||/(?:\d+\.\s*)?recursos\s+de\s+aprendizaje/i.test(tn)||/^Otros\s+materiales/i.test(tl);};
+
+  // FIX 3: lógica de continuación refinada
+  // ── REGLA PRIORITARIA compartida con el extractor PDF ─────────────────────
+  // Si la ref actual no termina en puntuación terminal → siempre continuación.
+  // Resuelve: "Ediciones\nInstituto", "Edición\nAddison Wesley", "- K\nDavis", etc.
+  const refSinTerminalDocx=r=>{
+    if(!r||!r.trim())return false;
+    return!/[.!?")\]%\d\u201c\u201d\u2018\u2019\xbb]\s*$/.test(r.trim());
+  };
+
+  // esLineaEditorial: editorial al INICIO de línea
+  // Siempre es continuación — independiente del marcador (bullet o no)
+  const esLineaEditorial=t=>/^(cambridge|oxford|elsevier|mcgraw.?hill|pearson|cengage|thomson|springer|wiley|routledge|addison.?wesley|prentice.?hall|university\s+press|editorial\s|ediciones?\s|publicaciones?|instituto\s)/i.test(t.trim())||(/\b(edici[oó]n|tercera|segunda|primera|cuarta)\b/i.test(t.trim())&&t.trim().length<70);
+
+  const esContinuacion=(t,marcador,refAct)=>{
+    if(!refAct)return false;
+    // PRIORITARIA: ref sin terminal → siempre continuación sin excepción
+    if(refSinTerminalDocx(refAct))return true;
+    const tc=t.trim();
+    if(/^[a-záéíóúñü(]/.test(tc))return true;      // comienza con minúscula
+    if(/^\d{4}\.?$/.test(tc))return true;           // año solo "2012"
+    if(/^\(?\d+[a-z]?\./.test(tc))return true;      // "10.1145/..." "3a."
+    if(esLineaEditorial(tc))return true;             // editorial SIEMPRE (con o sin bullet)
+    return false;
+  };
+
+  let refActual='';
+  const guardarRef=()=>{
+    if(refActual.length>30){
+      const limpia=refActual.replace(/\s{2,}/g,' ').replace(/\s*\.+\s*\.+/g,'.').trim();
+      // Aplicar la misma segunda pasada que el extractor PDF
+      (typeof splitRefMultiple==='function'?splitRefMultiple(limpia):[limpia]).forEach(p=>{
+        const pt=p.trim();
+        if(pt.length>20&&!/^(comprar\s+)?https?:\/\//i.test(pt)&&!/https?:\/\/(www\.)?(amazon|buscalibre|mercadolibre|bookfinder)/i.test(pt))ext_datos.push({archivo:archivoFuente,carrera,clave,nombre,tipo:tipoActual,ref:pt,status:validarCalidad(pt)});
+      });
+    }
+    refActual='';
+  };
+
+  items.forEach(it=>{
+    const pt=it.text.trim(),marcador=it.tieneMarcador;
+    if(!pt)return;
+    if(esTituloBiblio(pt)){guardarRef();enBiblio=true;return;}
+    if(!enBiblio)return;
+    if(esFin(pt)){guardarRef();enBiblio=false;enTipo=false;return;}
+    if(esTipoBasica(pt)){guardarRef();tipoActual='Básica';enTipo=true;return;}
+    if(esTipoComp(pt)){guardarRef();tipoActual='Complementaria';enTipo=true;return;}
+
+    const esRef=enTipo?esRefLaxa(pt):esRefEstricta(pt);
+
+    if(esContinuacion(pt,marcador,refActual)){
+      refActual+=' '+pt;
+    }else if(esRef){
+      guardarRef();
+      refActual=limpiarViñeta(pt);
+    }
+  });
+  guardarRef();
+  const _refsDocx=ext_datos.filter(d=>d.archivo===archivoFuente);
+  if(_refsDocx.length===0){
+    _ext_diagMsg=enBiblio?'Sección encontrada pero sin referencias reconocidas':'Sin sección bibliografía detectada';
+    // Insertar placeholder para que el programa aparezca en la tabla
+    ext_datos.push({archivo:archivoFuente,carrera,clave,nombre,tipo:'Básica',ref:'',
+      status:{level:'sinrefs',msg:_ext_diagMsg},sinrefs:true});
+  } else {
+    _ext_diagMsg='';
+  }
+  ext_updateView();
+}
+
+function extraerYAcumular(texto,filename){
+  texto=texto.replace(/\r/g,'\n').replace(/\t/g,' ');
+  // Normalizar viñetas Wingdings/PUA a bullet estándar para simplificar el parsing
+  texto=texto.replace(/[\uf0b7\uf0fc\uf076\uf0d8\uf0a7\uf0de\ue000-\uf8ff]/g,'•');
+  const lineas=texto.split('\n').map(l=>l.trim().replace(/\s{2,}/g,' ')).filter(l=>l.length>0);
+  let carrera='',nombre='';
+  // PRIMERO: sigla del nombre del archivo
+  const mfPdf=filename.match(/(?:^|[^A-Za-z])([A-Z]{2,6})\s*[-_]?\s*(\d{3,5})/);
+  let clave=mfPdf?(mfPdf[1]+' '+mfPdf[2]).toUpperCase():'';
+  const archivoFuente=filename;
+  for(let i=0;i<lineas.length&&!(clave&&nombre);i++){
+    const l=lineas[i];
+    if(!clave){const m=l.match(/(?:Sigla|Código|Clave)[\s:\t,]+([A-Z]{2,6}\s*\d{3,5})/i);if(m)clave=m[1].trim();}
+    if(!nombre){const m=l.match(/^Nombre\s+(?:de\s+la\s+)?Asignatura[\s:\t]+(.+)/i)||l.match(/^Nombre\s+del?\s+Curso[\s:\t]+(.+)/i);if(m)nombre=m[1].trim().substring(0,100);}
+    if(!carrera){const m=l.match(/^Carrera[\s:\t]+(.+)/i);if(m)carrera=m[1].trim().substring(0,60);}
+  }
+  if(!clave||!nombre){
+    const siglaIdx=lineas.findIndex(l=>/^(?:Sigla|Código|Clave)\s*$/i.test(l));
+    const nombreIdx=lineas.findIndex(l=>/^Nombre\s+(?:de\s+la\s+)?Asignatura\s*$/i.test(l)||/^Nombre\s+del?\s+Curso\s*$/i.test(l));
+    if(siglaIdx>=0&&!clave){let claveIdx=-1;for(let j=siglaIdx+1;j<Math.min(siglaIdx+25,lineas.length);j++){if(/^[A-Z]{2,6}\s*\d{3,5}\s*$/.test(lineas[j])){clave=lineas[j].trim();claveIdx=j;break;}}
+    if(claveIdx>=0&&nombreIdx>=0&&!nombre){const off=claveIdx-siglaIdx,nv=lineas[nombreIdx+off]?.trim();if(nv&&nv.length>2&&nv.length<100&&!/^[A-Z]{2,6}\d/.test(nv)&&!/^\d+$/.test(nv)&&!/^Horas|^Créditos|^Semestre|^Área/i.test(nv))nombre=nv;}
+    if(!nombre&&nombreIdx>=0){const next=lineas[nombreIdx+1]||'';if(next.length>2&&next.length<100&&!/^\d+$/.test(next)&&!/^[A-Z]{2,6}\d/.test(next))nombre=next.trim();}}
+  }
+  if(!nombre||nombre.length>100)nombre=filename.replace(/\.(pdf|docx)$/i,'').replace(/[-_]/g,' ').trim();
+  let idxBiblio=-1;
+  for(let i=0;i<lineas.length;i++){if(/^(?:VII\.?\s*)?(?:BIBLIOGRAFÍA|Referencias\s*Bibliográficas?|Textos?\s+Guías?|Material\s+Bibliográfico)(?:\s+Y\s+.+)?$/i.test(lineas[i])){idxBiblio=i;break;}}
+  if(idxBiblio===-1){for(let i=0;i<lineas.length;i++){if(/BIBLIOGRAFÍA|Referencias\s+Bibliográficas?/i.test(lineas[i])){idxBiblio=i;break;}}}
+  if(idxBiblio===-1){_ext_diagMsg='Sin título de bibliografía reconocido en el PDF';return;}
+  _ext_diagMsg='';
+  const esTipoBasica=t=>/(?:Bibliografía\s+)?(?:Básica|Obligatoria|Recomendada\s+Básica)/i.test(t);
+  const esTipoComp=t=>/(?:Bibliografía\s+)?(?:Complementaria|Adicional|Recomendada)/i.test(t);
+  const limpiarL=t=>t.replace(/^[\s•●\-\*✔✓►▪▸◆◉]+/,'').trim();
+  const esSoloViñeta=t=>/^[•●►▪▸◆◉✔✓\-\s]+$/.test(t);
+  // esFin: solo patrones que señalan cambio REAL de sección (igual que el original index.html)
+  // NO incluye "EL APRENDIZAJE" suelto — puede ser la 2ª línea del título partido
+  const esFin=t=>{
+    const tc=limpiarL(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const tn=t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    return /^(?:VIII|IX|X{1,3})[\.\s]/i.test(limpiarL(t))
+      ||/^SOBRE\s+INTEGRIDAD/i.test(limpiarL(t))
+      ||tn.startsWith('academico responsable')||tc.startsWith('academico responsable')
+      ||tn.startsWith('unidad responsable')||tc.startsWith('unidad responsable')
+      ||tn.startsWith('fecha de elaboracion')||tc.startsWith('fecha de elaboracion')
+      ||tn.startsWith('fecha de actualizacion')||tc.startsWith('fecha de actualizacion')
+      ||tn.startsWith('fecha de modificacion')||tc.startsWith('fecha de modificacion')
+      ||tn.includes('webgraf')||tc.includes('webgraf')
+      ||/(?:\d+\.\s*)?recursos\s+de\s+aprendizaje/i.test(tc)
+      ||/^Otros\s+materiales/i.test(limpiarL(t))
+      // Pie de página institucional — nunca es referencia
+      ||/^avenida\b/i.test(tc)||/^telefono\b/i.test(tc)||/^e-mail\b/i.test(tc)
+      ||tc.startsWith('acta consejo');
+  };
+  // esLineaEditorial: editorial al INICIO de línea → siempre continuación, nunca nueva ref
+  const esLineaEditorial=t=>/^(addison.?wesley|cambridge|oxford|elsevier|mcgraw.?hill|pearson|cengage|thomson|springer|wiley|routledge|prentice.?hall|university\s+press|editorial\s|ediciones?\s)/i.test(t.trim());
+
+  // ── Regla terminal: ¿la ref actual está gramaticalmente incompleta? ────────
+  // FIX: incluir comillas tipográficas (curly quotes) además de ASCII
+  // sin esto, líneas terminadas en " o " se tratan como incompletas
+  const refSinTerminal=r=>{
+    if(!r||!r.trim())return false;
+    return!/[.!?")\]%\d\u201c\u201d\u2018\u2019\xbb]\s*$/.test(r.trim());
+  };
+
+  let tipoActual='Básica',refActual='';
+  let soloViñetaPrevia=false; // FIX: bullet solo en línea propia → próxima línea = nueva ref
+
+  const guardarRef=()=>{
+    if(refActual.length>30){
+      const limpia=refActual.replace(/\s{2,}/g,' ').replace(/\s*\.+\s*\.+/g,'.').trim();
+      splitRefMultiple(limpia).forEach(p=>{
+        const pt=p.trim();
+        if(pt.length>20&&!/^(comprar\s+)?https?:\/\//i.test(pt)&&!/https?:\/\/(www\.)?(amazon|buscalibre|mercadolibre|bookfinder)/i.test(pt))ext_datos.push({archivo:archivoFuente,carrera,clave,nombre,tipo:tipoActual,ref:pt,status:validarCalidad(pt)});
+      });
+    }refActual='';
+  };
+
+  for(let i=idxBiblio+1;i<lineas.length;i++){
+    const l=lineas[i];
+    const lc=limpiarL(l);
+
+    if(esFin(l)){guardarRef();break;}
+    if(esTipoBasica(l)){guardarRef();tipoActual='Básica';soloViñetaPrevia=false;continue;}
+    if(esTipoComp(l)){guardarRef();tipoActual='Complementaria';soloViñetaPrevia=false;continue;}
+    if(esSoloViñeta(l)){soloViñetaPrevia=true;continue;}
+
+    const esEd=esLineaEditorial(lc);
+    const soloAnio=/^\d{4}\.?$/.test(lc);
+    const esURL=/^https?:\/\/|^www\./i.test(lc);
+
+    // REGLA PRIORITARIA: ref sin terminal → continuación
+    // (solo si la línea NO es inicio claro de nueva ref con bullet o viñeta previa)
+    const esBulletLine=/^[•●\-✔►▪]/.test(l)&&lc.length>5;
+    if(!esBulletLine&&!soloViñetaPrevia&&refSinTerminal(refActual)&&lc.length>3){
+      refActual+=' '+lc;continue;
+    }
+
+    if(esBulletLine||(soloViñetaPrevia&&!refSinTerminal(refActual))){
+      // Bullet explícito, o bullet previo con ref COMPLETA → nueva ref
+      guardarRef();refActual=lc;soloViñetaPrevia=false;
+    }else if(soloViñetaPrevia&&refSinTerminal(refActual)){
+      // Bullet previo pero ref INCOMPLETA → continuación (refSinTerminal gana)
+      refActual+=' '+lc;soloViñetaPrevia=false;
+
+    }else if(lc.length>5){
+      soloViñetaPrevia=false;
+      if(soloAnio||esEd){if(refActual)refActual+=' '+lc;}
+      else if(esURL){/* descartar URLs sueltas */}
+      else{
+        const tieneAnio=/\b(19|20)\d{2}\b/.test(lc.slice(0,80));
+        const tieneComa=/[,;]/.test(lc.slice(0,40));
+        const refCompleta=/\b(19|20)\d{2}[.)"\u201d]?\s*$/.test(refActual);
+        const pareceAutor=tieneComa&&/^[A-ZÁÉÍÓÚÑÜ]/.test(lc);
+        // "Apellido (YYYY" sin coma — Hampton (1996), Koontz (1999), Illanes (1997)
+        const apellidoParentesis=/^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]{2,}\s*\(\d{4}/.test(lc);
+        const esNuevaRef=(tieneAnio&&tieneComa&&lc.length>35&&/^[A-ZÁÉÍÓÚÑÜ]/.test(lc))
+                        ||(refCompleta&&pareceAutor)
+                        ||(refCompleta&&apellidoParentesis)
+                        ||(!refActual&&apellidoParentesis);
+        if(esNuevaRef&&!esEd){guardarRef();refActual=lc;}
+        else if(refActual){refActual+=' '+lc;}
+        else if(tieneAnio||/^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]{2,}[,;(]/.test(lc)){refActual=lc;}
+      }
+    }
+  }
+  guardarRef();
+  const _refsPdf=ext_datos.filter(d=>d.archivo===archivoFuente&&!d.sinrefs);
+  if(_refsPdf.length===0){
+    const msg=_ext_diagMsg||'Sin referencias reconocidas en el PDF';
+    ext_datos.push({archivo:archivoFuente,carrera,clave,nombre,tipo:'Básica',ref:'',
+      status:{level:'sinrefs',msg},sinrefs:true});
+  }
+  ext_updateView();
+}
+
+function validarCalidad(ref){
+  if(ref.match(/EUR\s*\d+/)||ref.match(/US\$\d+/)||ref.includes("PLIT"))return{level:'error',msg:"ERROR — texto inválido"};
+  const tieneAnio=/\b(19|20)\d{2}\b|\(s\.?f\.?\)/.test(ref);
+  if(!tieneAnio)return{level:'warning',msg:"INCOMPLETA — falta año"};
+  if(/^\s*\(?\d{4}\)?/.test(ref)||/^\s*:/.test(ref)||/^\s*-/.test(ref))return{level:'warning',msg:"INCOMPLETA — falta autor"};
+  return{level:'success',msg:"OK"};
+}
+
+// Construye grupos ordenados según el orden de carga de archivos
+function ext_buildGruposOrdenados(){
+  // Primero agrupar por clave+nombre
+  const grupos={};
+  ext_datos.forEach((d,i)=>{
+    const key=(d.clave||'—')+'||'+(d.nombre||'—');
+    if(!grupos[key])grupos[key]={clave:d.clave,nombre:d.nombre,archivo:d.archivo,items:[]};
+    grupos[key].items.push({...d,idx:i});
+  });
+  // Ordenar según el primer archivo que aportó cada grupo
+  const orden=ext_ordenArchivos;
+  return Object.values(grupos).sort((a,b)=>{
+    const ia=orden.indexOf(a.archivo||'');
+    const ib=orden.indexOf(b.archivo||'');
+    if(ia===ib)return 0;
+    if(ia===-1)return 1;
+    if(ib===-1)return -1;
+    return ia-ib;
+  });
+}
+// Para exportar: excluye filas sinrefs (programas sin referencias)
+function ext_buildGruposParaExportar(){
+  return ext_buildGruposOrdenados()
+    .map(g=>({...g,items:g.items.filter(d=>!d.sinrefs)}))
+    .filter(g=>g.items.length>0);
+}
+
+function ext_updateView(){
+  const tbody=document.getElementById('tablaExtractorBody');
+  if(ext_datos.length)tbody.innerHTML='';else{tbody.innerHTML='<tr><td colspan="7" class="text-center text-muted">Esperando datos...</td></tr>';return;}
+  const gruposOrdenados=ext_buildGruposOrdenados();
+  gruposOrdenados.forEach((grupo,idx)=>{
+    const sinSigla=!grupo.clave||grupo.clave==='—';
+    const archivosUnicos=[...new Set(grupo.items.map(d=>d.archivo||''))].filter(Boolean);
+    const archivoFuente=archivosUnicos[0]||'';
+    const archivoLabel=archivoFuente?`<span style="font-size:.65rem;color:${sinSigla?'#c2410c':'var(--muted)'};margin-left:6px;font-family:'DM Mono',monospace;">📄 ${archivoFuente}</span>`:'';
+    const badgeColor=sinSigla?'background:#fed7aa;color:#9a3412;border:1px solid #fdba74;':'';
+    const key=(grupo.clave||'—')+'||'+(grupo.nombre||'—');
+    const posicion=ext_gruposSeleccionados.indexOf(key);
+    const selIdx=posicion>=0?posicion+1:null;
+    tbody.innerHTML+=`<tr class="ext-grupo-row" data-key="${key.replace(/"/g,'&quot;')}" style="background:${sinSigla?'#fff7ed':'#e9ecef'};">
+      <td class="text-center">
+        <label style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;cursor:pointer;">
+          <input type="checkbox" class="grupo-check" data-key="${key.replace(/"/g,'&quot;')}"
+            ${selIdx?'checked':''} onchange="ext_onGrupoCheck(this)" style="opacity:0;position:absolute;width:0;height:0;">
+          <span style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;
+            border:2px solid ${selIdx?'var(--navy)':'var(--border)'};
+            background:${selIdx?'var(--navy)':'white'};
+            color:white;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;transition:.15s;">
+            ${selIdx||''}
+          </span>
+        </label>
+      </td>
+      <td colspan="4">
+        <span style="${badgeColor}padding:2px 8px;border-radius:4px;font-weight:700;">${grupo.clave||'⚠ SIN SIGLA'}</span>
+        <span style="margin-left:6px;font-size:.85rem;color:var(--text);">· ${grupo.nombre||'—'}</span>
+        ${archivoLabel}
+        <span class="badge bg-secondary ms-2">${grupo.items.length} refs</span>
+        ${sinSigla?'<span class="badge ms-1" style="background:#fee2e2;color:#991b1b;font-size:.6rem;">⚠ Editar antes de exportar</span>':''}
+      </td>
+      <td class="text-end">
+        <button class="btn btn-outline-secondary btn-sm py-0 px-1" style="font-size:.75rem;" onclick="ext_editarAsignatura('${(grupo.clave+'||'+grupo.nombre).replace(/'/g,"\\'")}')">✏️ Editar</button>
+      </td>
+    </tr>`;
+    grupo.items.forEach(d=>{
+      if(d.sinrefs){
+        // Fila especial: programa sin referencias
+        tbody.innerHTML+=`<tr style="background:#f1f5f9;">
+          <td class="text-center"><input type="checkbox" class="ref-check" data-idx="${d.idx}" onchange="ext_onCheckChange()"></td>
+          <td colspan="3" class="text-center" style="color:#64748b;font-style:italic;font-size:.8rem;">
+            <span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:12px;font-size:.72rem;font-weight:600;">⚠ SIN REFERENCIAS</span>
+          </td>
+          <td style="color:#94a3b8;font-size:.75rem;font-style:italic;">${d.status.msg}</td>
+          <td>
+            <button class="btn btn-xs btn-outline-danger btn-sm py-0 px-1" style="font-size:.7rem;" title="Eliminar" onclick="ext_eliminarUna(${d.idx})">✕</button>
+          </td>
+        </tr>`;
+        return;
+      }
+      const cls=d.status.level==='success'?'row-ok':(d.status.level==='warning'?'row-warning':'row-error');
+      const tipoOpts=['Básica','Complementaria'].map(t=>`<option${d.tipo===t?' selected':''}>${t}</option>`).join('');
+      tbody.innerHTML+=`<tr class="${cls}" data-idx="${d.idx}">
+        <td class="text-center"><input type="checkbox" class="ref-check" data-idx="${d.idx}" onchange="ext_onCheckChange()"></td>
+        <td><small class="text-muted">${d.clave||'—'}</small></td>
+        <td><small>${d.nombre||'—'}</small></td>
+        <td>
+          <select class="form-select form-select-sm" style="font-size:.7rem;padding:1px 4px;" onchange="ext_cambiarTipo(${d.idx},this.value)">${tipoOpts}</select>
+        </td>
+        <td class="ref-cell" data-idx="${d.idx}">
+          <small class="ref-texto">${d.ref}</small>
+        </td>
+        <td><small>${d.status.msg}</small></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-xs btn-outline-secondary btn-sm py-0 px-1 me-1" style="font-size:.7rem;" title="Editar referencia" onclick="ext_editarRef(${d.idx},this.closest('tr').querySelector('.ref-cell'))">✏️</button>
+          <button class="btn btn-xs btn-outline-warning btn-sm py-0 px-1 me-1" style="font-size:.7rem;" title="Partir en dos referencias" onclick="ext_partirRef(${d.idx})">✂️</button>
+          <button class="btn btn-xs btn-outline-danger btn-sm py-0 px-1" style="font-size:.7rem;" title="Eliminar esta referencia" onclick="ext_eliminarUna(${d.idx})">✕</button>
+        </td>
+      </tr>`;
+    });
+  });
+  const rl=document.getElementById('ext_resumenLista');rl.innerHTML='';
+  gruposOrdenados.forEach(g=>{const bas=g.items.filter(d=>d.tipo!=='Complementaria').length,comp=g.items.filter(d=>d.tipo==='Complementaria').length;rl.innerHTML+=`<div class="card border-secondary" style="min-width:200px;max-width:260px;"><div class="card-body py-2 px-3"><div class="fw-bold small">${g.clave||'—'}</div><div class="text-muted small text-truncate">${g.nombre||'—'}</div><div class="mt-1 d-flex gap-2"><span class="badge bg-primary">${bas} Básica</span><span class="badge bg-secondary">${comp} Compl.</span></div></div></div>`;})
+  document.getElementById('ext_resumenAsignaturas').style.display=ext_datos.length?'block':'none';
+  document.getElementById('badgeArchivos').innerText=ext_filesProcesados.size+" Archivos";
+  document.getElementById('badgeRefs').innerText=ext_datos.length+" Refs";
+  document.getElementById('btnDescargarExt').classList.remove('disabled');
+  document.getElementById('btnEnviarGestor').classList.remove('disabled');
+  document.getElementById('statusLog').innerText="Procesamiento completo. "+gruposOrdenados.length+" asignatura(s). Selecciona las que quieres exportar.";
+  document.getElementById('ext_instruccionSel').style.display=gruposOrdenados.length>0?'block':'none';
+  const ca=document.getElementById('checkAll');if(ca)ca.checked=false;
+  document.getElementById('btnEliminarSel').style.display='none';
+}
+// ── Selección ordenada de asignaturas para exportar ──────────────────────────
+let ext_gruposSeleccionados=[];
+
+function ext_onGrupoCheck(chk){
+  const key=chk.dataset.key;
+  if(chk.checked){
+    if(!ext_gruposSeleccionados.includes(key))ext_gruposSeleccionados.push(key);
+  }else{
+    ext_gruposSeleccionados=ext_gruposSeleccionados.filter(k=>k!==key);
+  }
+  ext_updateGrupoSelUI();
+}
+function ext_updateGrupoSelUI(){
+  const n=ext_gruposSeleccionados.length;
+  const btn=document.getElementById('btnDescargarSel');
+  const cnt=document.getElementById('cntGruposSel');
+  if(n>0){btn.style.display='inline-block';btn.classList.remove('disabled');cnt.textContent=n;}
+  else{btn.style.display='none';}
+  document.querySelectorAll('.grupo-check').forEach(chk=>{
+    const pos=ext_gruposSeleccionados.indexOf(chk.dataset.key);
+    const span=chk.nextElementSibling;if(!span)return;
+    if(pos>=0){span.textContent=pos+1;span.style.background='var(--navy)';span.style.borderColor='var(--navy)';}
+    else{span.textContent='';span.style.background='white';span.style.borderColor='var(--border)';}
+  });
+}
+function ext_exportarSeleccionadas(){
+  if(!ext_gruposSeleccionados.length)return alert('Selecciona al menos una asignatura.');
+  const wb=XLSX.utils.book_new();
+  const carrera=ext_datos.find(d=>d.carrera)?.carrera||'';
+  const allGrupos={};
+  ext_buildGruposParaExportar().forEach(g=>{allGrupos[(g.clave||'—')+'||'+(g.nombre||'—')]=g;});
+  const grupos={};
+  ext_gruposSeleccionados.forEach(key=>{
+    const g=allGrupos[key];if(!g)return;
+    grupos[key]={clave:g.clave||'',asignatura:g.nombre||'',nombre:g.nombre||'',basica:[],complementaria:[]};
+    g.items.forEach(d=>{if(d.tipo==='Complementaria')grupos[key].complementaria.push(d);else grupos[key].basica.push(d);});
+  });
+  const ws=buildPlanillaWS(grupos,carrera);
+  XLSX.utils.book_append_sheet(wb,ws,'Bibliografías');
+  XLSX.writeFile(wb,'Seleccion_'+(carrera||'Bibliografía')+'.xlsx');
+}
+function ext_onCheckChange(){const checks=document.querySelectorAll('.ref-check'),sel=[...checks].filter(c=>c.checked).length;document.getElementById('btnEliminarSel').style.display=sel>0?'inline-block':'none';const ca=document.getElementById('checkAll');if(ca)ca.checked=sel===checks.length&&checks.length>0;}
+function ext_toggleAll(checked){document.querySelectorAll('.ref-check').forEach(c=>c.checked=checked);ext_onCheckChange();}
+function ext_eliminarSeleccionadas(){const sel=[...document.querySelectorAll('.ref-check:checked')].map(c=>parseInt(c.dataset.idx));if(!sel.length)return;if(!confirm(`¿Eliminar ${sel.length} referencia(s)?`))return;const s=new Set(sel);ext_datos=ext_datos.filter((_,i)=>!s.has(i));ext_updateView();}
+function ext_editarAsignatura(key){const [ca,na]=key.split('||');const nc=prompt('Clave:',ca==='—'?'':ca);if(nc===null)return;const nn=prompt('Nombre:',na==='—'?'':na);if(nn===null)return;ext_datos.forEach(d=>{if((d.clave||'—')===ca&&(d.nombre||'—')===na){d.clave=nc.trim();d.nombre=nn.trim();}});ext_updateView();}
+function ext_reiniciarTodo(){if(!confirm("¿Borrar todo?"))return;ext_datos=[];ext_filesProcesados.clear();ext_archivos={};ext_ordenArchivos=[];ext_gruposSeleccionados=[];ext_updateContador();document.getElementById('tablaExtractorBody').innerHTML='<tr><td colspan="6" class="text-center text-muted">Esperando...</td></tr>';document.getElementById('badgeArchivos').innerText="0";document.getElementById('badgeRefs').innerText="0";document.getElementById('btnDescargarExt').classList.add('disabled');document.getElementById('btnEnviarGestor').classList.add('disabled');document.getElementById('statusLog').innerText='Listo para procesar.';}
+function ext_enviarAlGestor(){if(!ext_datos.length)return;let ag=0;ext_datos.forEach(d=>{if(!gestor_refs.some(r=>r.Referencia===d.ref)){gestor_refs.push({Carrera:d.carrera||'',Clave:d.clave||'',Asignatura:d.nombre||'',Tipo:d.tipo,Referencia:d.ref,ISBN:'',Observaciones:d.status.level!=='success'?d.status.msg:''});ag++;}});gestor_renderTabla();alert(`✅ ${ag} referencia(s) enviadas al Gestor.`);document.querySelector('[data-bs-target="#gestor-pane"]').click();}
+function ext_exportarExcel(){
+  if(!ext_datos.length)return;
+  const wb=XLSX.utils.book_new();
+  const carrera=ext_datos.find(d=>d.carrera)?.carrera||'';
+  // Construir grupos en el orden de carga de archivos
+  const gruposOrd=ext_buildGruposParaExportar();
+  const grupos={};
+  gruposOrd.forEach(g=>{
+    const key=(g.clave||'')+'||'+(g.nombre||'');
+    grupos[key]={clave:g.clave||'',asignatura:g.nombre||'',nombre:g.nombre||'',basica:[],complementaria:[]};
+    g.items.forEach(d=>{if(d.tipo==='Complementaria')grupos[key].complementaria.push(d);else grupos[key].basica.push(d);});
+  });
+  const ws=buildPlanillaWS(grupos,carrera);
+  XLSX.utils.book_append_sheet(wb,ws,'Bibliografías');
+  XLSX.writeFile(wb,'Extractor_'+(carrera||'Bibliografía')+'.xlsx');
+}
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPT 3 — IMPORTADOR ZOTERO/MENDELEY
+══════════════════════════════════════════════════════════ -->
+<script>
+let imp_referencias=[];
+const dropZoneImport=document.getElementById('dropZoneImport'),fileInputImport=document.getElementById('fileInputImport');
+dropZoneImport.addEventListener('dragover',(e)=>{e.preventDefault();dropZoneImport.classList.add('drag');});
+dropZoneImport.addEventListener('dragleave',()=>dropZoneImport.classList.remove('drag'));
+dropZoneImport.addEventListener('drop',(e)=>{e.preventDefault();dropZoneImport.classList.remove('drag');imp_procesarArchivo(e.dataTransfer.files[0]);});
+fileInputImport.addEventListener('change',(e)=>imp_procesarArchivo(e.target.files[0]));
+
+function imp_procesarArchivo(file){
+  if(!file)return;const reader=new FileReader(),ext=file.name.split('.').pop().toLowerCase();
+  reader.onload=(e)=>{const c=e.target.result;if(ext==='ris')imp_referencias=imp_parseRIS(c);else if(ext==='bib')imp_referencias=imp_parseBibTeX(c);else{alert("Formato no soportado. Use .RIS o .BIB");return;}imp_renderTabla();};
+  reader.readAsText(file);
+}
+function imp_parseRIS(c){return c.split(/ER\s{1,2}-/).map(e=>{if(!e.trim())return null;const g=(t)=>{const m=e.match(new RegExp(`^${t}\\s{1,2}-\\s+(.*)$`,"m"));return m?m[1].trim():null;};const authors=[];const ar=/^AU\s{1,2}-\s+(.*)$/gm;let m;while((m=ar.exec(e))!==null)authors.push(m[1]);return{titulo:g('TI')||g('T1')||"Sin título",autores:authors,anio:(g('PY')||g('Y1')||"s.f.").substring(0,4),fuente:g('PB')||g('JA')||""};}).filter(r=>r!==null);}
+function imp_parseBibTeX(c){return c.split('@').map(e=>{if(!e.trim()||e.trim().startsWith('comment'))return null;const ex=(k)=>{const m=e.match(new RegExp(`${k}\\s*=\\s*[{"'](.*?)["'}]`,"i"));return m?m[1]:null;};const as=ex('author');return{titulo:ex('title')||"Sin título",autores:as?as.split(' and ').map(a=>a.trim()):[],anio:ex('year')||"s.f.",fuente:ex('journal')||ex('publisher')||""};}).filter(r=>r!==null);}
+function imp_generarAPA(ref){const af=ref.autores.map(a=>{if(a.includes(',')){{const p=a.split(',');return `${p[0]}, ${p[1].trim().charAt(0)}.`;}};return a;}).join(' & ');return `${af} (${ref.anio}). <i>${ref.titulo}</i>. ${ref.fuente}.`;}
+function imp_renderTabla(){
+  const tbody=document.getElementById('tablaImportadorBody'),rd=document.getElementById('importResults');
+  tbody.innerHTML='';if(imp_referencias.length>0){rd.style.display='block';document.getElementById('imp_badge').textContent=imp_referencias.length;imp_referencias.forEach((ref,idx)=>{const cita=imp_generarAPA(ref),cC=cita.replace(/<i>|<\/i>/g,'');tbody.innerHTML+=`<tr><td class="text-center"><input type="checkbox" id="imp_chk_${idx}" checked style="width:16px;height:16px;cursor:pointer;"></td><td><small>${cita}</small></td><td><select class="form-select form-select-sm" id="imp_tipo_${idx}"><option value="Básica">Básica</option><option value="Complementaria">Complementaria</option></select></td><td class="text-center"><button class="btn btn-sm btn-outline-secondary py-0" onclick="imp_copiar('${cC.replace(/'/g,"\\'")}')">📋</button></td></tr>`;});}
+}
+function imp_seleccionarTodas(){imp_referencias.forEach((_,i)=>{const c=document.getElementById(`imp_chk_${i}`);if(c)c.checked=true;});}
+function imp_deseleccionarTodas(){imp_referencias.forEach((_,i)=>{const c=document.getElementById(`imp_chk_${i}`);if(c)c.checked=false;});}
+function imp_aplicarTipoGlobal(tipo){imp_referencias.forEach((_,i)=>{const el=document.getElementById(`imp_tipo_${i}`);if(el)el.value=tipo;});}
+function imp_copiar(texto){navigator.clipboard.writeText(texto);alert("¡Copiado!");}
+function imp_copiarTodas(){navigator.clipboard.writeText(imp_referencias.map(r=>imp_generarAPA(r).replace(/<i>|<\/i>/g,'')).join('\n\n'));alert("¡Copiado!");}
+function imp_enviarAlGestor(){
+  if(!imp_referencias.length)return alert('No hay referencias.');
+  const carrera=document.getElementById('imp_carrera').value.trim(),clave=document.getElementById('imp_clave').value.trim(),asig=document.getElementById('imp_asignatura').value.trim();
+  let ag=0,sel=0;
+  imp_referencias.forEach((ref,idx)=>{const chk=document.getElementById(`imp_chk_${idx}`);if(!chk||!chk.checked)return;sel++;const cita=imp_generarAPA(ref),tipoEl=document.getElementById(`imp_tipo_${idx}`),tipo=tipoEl?tipoEl.value:'Básica';if(!gestor_refs.some(r=>r.Referencia===cita)){gestor_refs.push({Carrera:carrera,Clave:clave,Asignatura:asig,Tipo:tipo,Referencia:cita,ISBN:''});ag++;}});
+  if(!sel)return alert('No hay referencias seleccionadas.');
+  gestor_renderTabla();alert(`✅ ${ag} referencia(s) enviadas.`);document.querySelector('[data-bs-target="#gestor-pane"]').click();
+}
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPT 4 — VERIFICADOR DE CATÁLOGO v4.3
+══════════════════════════════════════════════════════════ -->
+<script>
+// ── Constantes y estado ────────────────────────────────────
+var STOP={de:1,del:1,la:1,el:1,los:1,las:1,un:1,una:1,y:1,en:1,con:1,por:1,para:1,al:1,a:1,e:1,o:1,es:1,su:1,se:1,que:1,lo:1,le:1,si:1,no:1,vol:1,ed:1,eds:1,edicion:1,edition:1,primera:1,segunda:1,tercera:1,cuarta:1,quinta:1,sexta:1,septima:1,octava:1,novena:1,decima:1,editorial:1,editores:1,cengage:1,learning:1,mcgraw:1,hill:1,pearson:1,limusa:1,alfaomega:1,graw:1,mc:1,sa:1,soc:1,chile:1,mexico:1,barcelona:1,colombia:1,argentina:1,impa:1,ediciones:1,universidad:1,catolica:1,gestion:1,reverte:1,thomson:1,springer:1,addison:1,wiley:1,potenciando:1,pensamiento:1,critico:1,traves:1,coleccion:1,matematica:1};
+var CONN={y:1,and:1,et:1,von:1,van:1,de:1,del:1,la:1,los:1,las:1};
+var THRESHOLD=60, V_PAGE=100;
+var v_dataRef=[],v_dataCat=[],v_allResults=[],v_filtered=[];
+var v_sortKey=null,v_sortDir=1,v_pg=0,v_stopFlag=false;
+
+// ── Normalización ──────────────────────────────────────────
+function norm(t){if(!t)return '';return String(t).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
+
+// ── parseRef ───────────────────────────────────────────────
+function parseRef(ref){
+  var s=String(ref||'').trim();
+  var isArticle=/journal|revista|doi\.org|issn|transactions|proceedings|vol\.|pp\.|issue|quarterly/i.test(s);
+  var authSec='',titleText='';
+  var ym=s.match(/\(\s*\d{4}\s*\)/);
+  if(ym){var yi=s.indexOf(ym[0]);authSec=s.slice(0,yi);titleText=s.slice(yi+ym[0].length).replace(/^\s*\.?\s*/,'');}
+  else{var re=/\b[A-Z]\.\s+/g,m,lastEnd=-1;while((m=re.exec(s))!==null){var after=s.slice(m.index+m[0].length);if(/^[A-ZÁÉÍÓÚ][a-záéíóú]{2,}/.test(after))lastEnd=m.index+m[0].length;}
+  if(lastEnd>0){authSec=s.slice(0,lastEnd);titleText=s.slice(lastEnd);}
+  else{var dm=s.match(/\.\s+([A-ZÁÉÍÓÚ].+)/);if(dm){authSec=s.slice(0,s.indexOf(dm[0]));titleText=dm[1];}else{authSec='';titleText=s;}}}
+  var surnames=[],seenSn={};
+  var snRe=/\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})\b/g,snM;
+  while((snM=snRe.exec(authSec))!==null){var n=norm(snM[1]);if(!CONN[n]&&!seenSn[n]){surnames.push(n);seenSn[n]=1;}}
+  titleText=titleText.replace(/\b\d{4}\b/g,' ').replace(/\b\d+\s*[vaeoaº°]+\.?\b/gi,' ').replace(/\b[A-Z]\.\s*/g,' ').replace(/([a-záéíóúA-ZÁÉÍÓÚ])(\d)/g,'$1 $2').replace(/(\d)([a-záéíóúA-ZÁÉÍÓÚ])/g,'$1 $2');
+  var tw=[],seenTw={},words=norm(titleText).split(/\s+/);
+  for(var i=0;i<words.length&&tw.length<5;i++){var w=words[i];if(w.length>2&&!STOP[w]&&!/^\d+$/.test(w)&&!seenSn[w]&&!seenTw[w]){tw.push(w);seenTw[w]=1;}}
+  return{surnames:surnames,tw:tw,isArticle:isArticle,anio:ym?parseInt(ym[0].replace(/[()]/g,'').trim()):0};
+}
+
+// ── buildIndex ─────────────────────────────────────────────
+function buildIndex(data,colTit,colAut,colEjem,colAnio){
+  var groups={},order=[];
+  data.forEach(function(row){
+    var titulo=String(row[colTit]||''),autor=String(row[colAut]||'');
+    var ejem=parseInt(row[colEjem])||0,anio=parseInt(row[colAnio])||0;
+    var nt=norm(titulo),na=norm(autor),naSn=na.split(/\s+/)[0]||'';
+    var key=nt+'||'+naSn+'||'+anio;
+    if(groups[key]){groups[key].ejem+=ejem;}
+    else{var tw={};nt.split(/\s+/).forEach(function(w){if(w.length>2&&!STOP[w]&&!/^\d+$/.test(w))tw[w]=1;});groups[key]={titulo:titulo,autor:autor,ejem:ejem,anio:anio,naSn:naSn,tw:tw};order.push(key);}
+  });
+  return order.map(function(k){return groups[k];});
+}
+
+// ── scoreEntry ─────────────────────────────────────────────
+function scoreEntry(surnames,refTw,entry){
+  var authSc=0;
+  for(var i=0;i<surnames.length;i++){var sn=surnames[i],sc=0;if(sn===entry.naSn)sc=50;else if(entry.naSn&&(sn.indexOf(entry.naSn)!==-1||entry.naSn.indexOf(sn)!==-1))sc=25;if(sc>authSc)authSc=sc;}
+  var titleSc=0,hits=0;
+  for(var j=0;j<refTw.length;j++){var w=refTw[j];if(entry.tw[w]){hits++;titleSc+=w.length>6?25:15;}}
+  var total=authSc+titleSc;
+  if(surnames.length>0&&authSc===0&&entry.naSn)total-=30;
+  return{total:total,hits:hits,authSc:authSc};
+}
+
+// ── matchRef (con filtro de año + suma de ejemplares) ──────
+function matchRef(ref,catIndex){
+  var p=parseRef(ref);
+  if(p.isArticle)return{estado:'ARTÍCULO CIENTÍFICO',ejemplares:0,titulo_cat:'',autor_cat:'',score:0,obs:'Verificar online',link:'https://scholar.google.com/scholar?q='+encodeURIComponent(ref)};
+  function anioValido(entry){if(!p.anio||!entry.anio)return true;return entry.anio>=p.anio;}
+  var bestTotal=-999,bestHits=0,bestAuth=0,bestEntry=null;
+  for(var i=0;i<catIndex.length;i++){
+    if(!anioValido(catIndex[i]))continue;
+    var r=scoreEntry(p.surnames,p.tw,catIndex[i]);
+    if(r.total>bestTotal||(r.total===bestTotal&&r.hits>bestHits)){bestTotal=r.total;bestHits=r.hits;bestAuth=r.authSc;bestEntry=catIndex[i];}
+  }
+  var minHits=bestAuth===50?1:(p.tw.length>=3?2:1);
+  var found=bestTotal>=THRESHOLD&&bestHits>=minHits;
+  if(found&&bestEntry){
+    var totalEjem=0;
+    for(var j=0;j<catIndex.length;j++){
+      if(!anioValido(catIndex[j]))continue;
+      var rs=scoreEntry(p.surnames,p.tw,catIndex[j]);
+      if(rs.total>=THRESHOLD&&rs.hits>=minHits&&rs.total>=bestTotal-10)totalEjem+=catIndex[j].ejem;
+    }
+    var anioInfo=p.anio?' · ≥'+p.anio:'';
+    return{estado:totalEjem>0?'EN BIBLIOTECA':'SIN STOCK',ejemplares:totalEjem,titulo_cat:bestEntry.titulo,autor_cat:bestEntry.autor,score:bestTotal,obs:'Score '+bestTotal+' · '+bestHits+' hit(s)'+anioInfo,link:''};
+  }
+  return{estado:'NO ENCONTRADO',ejemplares:0,titulo_cat:'',autor_cat:'',score:bestTotal,obs:'Score '+bestTotal+' insuf. · '+p.tw.slice(0,3).join(', '),link:'https://www.bookfinder.com/search/?keywords='+encodeURIComponent(ref.slice(0,60))};
+}
+
+// ── Carga de archivos ──────────────────────────────────────
+function v_setupDrop(dId,iId,sId,cb){
+  var drop=document.getElementById(dId),inp=document.getElementById(iId);
+  inp.addEventListener('change',function(e){v_loadFile(e.target.files[0],drop,sId,cb);});
+  drop.addEventListener('dragover',function(e){e.preventDefault();drop.classList.add('drag');});
+  drop.addEventListener('dragleave',function(){drop.classList.remove('drag');});
+  drop.addEventListener('drop',function(e){e.preventDefault();drop.classList.remove('drag');if(e.dataTransfer.files[0])v_loadFile(e.dataTransfer.files[0],drop,sId,cb);});
+}
+function v_loadFile(file,drop,sId,cb){
+  if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{var wb=XLSX.read(e.target.result,{type:'binary'}),ws=wb.Sheets[wb.SheetNames[0]],json=XLSX.utils.sheet_to_json(ws,{defval:''});
+    drop.classList.add('ok');document.getElementById(sId).textContent='✓ '+file.name+' · '+json.length+' filas';cb(json);}
+    catch(err){v_showAlert('e','Error: '+err.message);}
+  };r.readAsBinaryString(file);
+}
+
+v_setupDrop('v_dropRef','v_fileRef','v_statRef',function(d){
+  v_dataRef=d;
+  v_fillSel('v_colRef',d,/ref|bib|tit|cit|libro|obra/i);
+  document.getElementById('v_colmapRef').style.display='block';
+  v_checkReady();
+});
+v_setupDrop('v_dropCat','v_fileCat','v_statCat',function(d){
+  v_dataCat=d;
+  v_fillSel('v_colTit',d,/tit|titulo|title|nombre|libro/i);
+  v_fillSel('v_colAut',d,/aut|autor|author|escritor/i);
+  v_fillSel('v_colEjem',d,/ejem|ejemplar|cop|stock|cant|disp/i);
+  v_fillSel('v_colAnio',d,/^a[ñn]o$|year|fecha|anio|año/i);
+  document.getElementById('v_colmapCat').style.display='block';
+  v_checkReady();
+});
+
+function v_fillSel(id,data,re){
+  var cols=Object.keys(data[0]||{}),sel=document.getElementById(id);
+  sel.innerHTML=cols.map(function(c){return'<option value="'+v_escH(c)+'">'+v_escH(c)+'</option>';}).join('');
+  var auto=cols.filter(function(c){return re.test(c);})[0]||cols[0];
+  if(auto)sel.value=auto;
+  if(id==='v_colRef'){sel.addEventListener('change',v_updatePreview);v_updatePreview();}
+}
+
+function v_updatePreview(){
+  var col=document.getElementById('v_colRef').value;
+  if(!v_dataRef.length||!col)return;
+  document.getElementById('v_prevRef').textContent=v_dataRef.slice(0,2).map(function(r){return String(r[col]).slice(0,70);}).join(' / ');
+  var tbody=document.getElementById('v_previewBody');
+  tbody.innerHTML=v_dataRef.slice(0,3).map(function(row){var ref=String(row[col]||''),p=parseRef(ref);return'<tr><td class="reftd">'+v_escH(ref.slice(0,55))+(ref.length>55?'…':'')+'</td><td style="font-family:\'DM Mono\',monospace;font-size:.68rem;color:var(--accent);">'+v_escH(p.surnames.slice(0,3).join(', '))+'</td><td style="font-family:\'DM Mono\',monospace;font-size:.68rem;color:var(--accent);">'+v_escH(p.tw.join(', '))+'</td></tr>';}).join('');
+  document.getElementById('v_ptableWrap').style.display='block';
+}
+
+function v_checkReady(){
+  if(v_dataRef.length&&v_dataCat.length){document.getElementById('v_btnStart').style.display='inline-block';}
+}
+
+// ── Procesamiento ──────────────────────────────────────────
+document.getElementById('v_btnStart').addEventListener('click',function(){
+  var colRef=document.getElementById('v_colRef').value,colTit=document.getElementById('v_colTit').value,colAut=document.getElementById('v_colAut').value,colEjem=document.getElementById('v_colEjem').value,colAnio=document.getElementById('v_colAnio').value;
+  if(!v_dataRef.length||!v_dataCat.length){v_showAlert('e','Faltan archivos.');return;}
+  v_clearAlerts();v_stopFlag=false;v_allResults=[];
+  document.getElementById('v_btnStart').disabled=true;
+  document.getElementById('v_btnStop').style.display='inline-block';
+  document.getElementById('v_progWrap').style.display='block';
+  document.getElementById('v_results').style.display='none';
+  var catIndex=buildIndex(v_dataCat,colTit,colAut,colEjem,colAnio);
+  var total=v_dataRef.length,i=0;
+  function chunk(){
+    var end=Math.min(i+50,total);
+    for(;i<end&&!v_stopFlag;i++){var ref=String(v_dataRef[i][colRef]||'');if(!ref.trim())continue;var res=matchRef(ref,catIndex);res.ref=ref;res.idx=v_allResults.length+1;v_allResults.push(res);}
+    var pct=Math.round((i/total)*100);
+    document.getElementById('v_pFill').style.width=pct+'%';
+    document.getElementById('v_pTxt').textContent='Procesando... '+i+' / '+total+' ('+pct+'%)';
+    if(i<total&&!v_stopFlag){setTimeout(chunk,0);}
+    else{document.getElementById('v_btnStart').disabled=false;document.getElementById('v_btnStop').style.display='none';document.getElementById('v_progWrap').style.display='none';v_renderAll();v_showAlert(v_stopFlag?'w':'o',v_stopFlag?('⏹ Detenido en '+i+'.'):'✅ Completado — '+v_allResults.length+' referencias procesadas.');}
+  }
+  setTimeout(chunk,0);
+});
+document.getElementById('v_btnStop').addEventListener('click',function(){v_stopFlag=true;});
+
+// ── Render resultados ──────────────────────────────────────
+function v_renderAll(){
+  document.getElementById('v_results').style.display='block';
+  var total=v_allResults.length;
+  var enBib=v_allResults.filter(function(r){return r.estado==='EN BIBLIOTECA';}).length;
+  var noEnc=v_allResults.filter(function(r){return r.estado==='NO ENCONTRADO';}).length;
+  var sinStock=v_allResults.filter(function(r){return r.estado==='SIN STOCK';}).length;
+  var arts=v_allResults.filter(function(r){return r.estado==='ARTÍCULO CIENTÍFICO';}).length;
+  var btnCot=document.getElementById('v_btnEnvCot');
+  if(noEnc+sinStock>0){btnCot.style.display='inline-block';btnCot.textContent='💰 Enviar '+(noEnc+sinStock)+' no encontrados al Cotizador';}
+  else btnCot.style.display='none';
+  document.getElementById('v_metricsGrid').innerHTML=[
+    {l:'📚 Total',v:total,s:'',c:'var(--navy)'},
+    {l:'✅ En Biblioteca',v:enBib,s:total?Math.round(enBib/total*100)+'%':'',c:'var(--green)'},
+    {l:'❓ No Encontrado',v:noEnc,s:'',c:'#c2410c'},
+    {l:'🔴 Sin Stock',v:sinStock,s:'',c:'#b91c1c'},
+    {l:'📄 Artículos',v:arts,s:'',c:'#1d4ed8'},
+  ].map(function(m){return`<div class="col"><div class="v-metric"><div class="ml">${m.l}</div><div class="mv" style="color:${m.c}">${m.v}</div>${m.s?`<div class="ms">${m.s}</div>`:''}</div></div>`;}).join('');
+  var estados=[],seenE={};
+  v_allResults.forEach(function(r){if(!seenE[r.estado]){estados.push(r.estado);seenE[r.estado]=1;}});
+  var fe=document.getElementById('v_fEst'),cur=fe.value;
+  fe.innerHTML='<option value="">Todos los estados</option>'+estados.map(function(e){return'<option'+(e===cur?' selected':'')+'>'+v_escH(e)+'</option>';}).join('');
+  v_applyFilters();
+}
+
+function v_applyFilters(){
+  var est=document.getElementById('v_fEst').value,srch=document.getElementById('v_fSearch').value.toLowerCase();
+  v_filtered=v_allResults.filter(function(r){return(!est||r.estado===est)&&(!srch||r.ref.toLowerCase().indexOf(srch)!==-1||r.titulo_cat.toLowerCase().indexOf(srch)!==-1);});
+  v_pg=0;v_renderTable();
+}
+document.getElementById('v_fEst').addEventListener('change',v_applyFilters);
+document.getElementById('v_fSearch').addEventListener('input',v_applyFilters);
+
+function v_srt(key){if(v_sortKey===key)v_sortDir*=-1;else{v_sortKey=key;v_sortDir=1;}v_filtered.sort(function(a,b){var av=a[key],bv=b[key];if(typeof av==='number')return(av-bv)*v_sortDir;return String(av).localeCompare(String(bv))*v_sortDir;});v_pg=0;v_renderTable();}
+
+function v_renderTable(){
+  var start=v_pg*V_PAGE,slice=v_filtered.slice(start,start+V_PAGE),total=v_filtered.length;
+  document.getElementById('v_cntLbl').textContent='Mostrando '+(start+1)+'–'+Math.min(start+V_PAGE,total)+' de '+total;
+  document.getElementById('v_pageLbl').textContent='Pág. '+(v_pg+1)+'/'+Math.max(1,Math.ceil(total/V_PAGE));
+  document.getElementById('v_btnPrev').disabled=v_pg===0;
+  document.getElementById('v_btnNext').disabled=start+V_PAGE>=total;
+  var bmap={'EN BIBLIOTECA':'bg-success','SIN STOCK':'bg-danger','NO ENCONTRADO':'bg-warning text-dark','ARTÍCULO CIENTÍFICO':'bg-primary'};
+  document.getElementById('v_tbody').innerHTML=slice.map(function(r){
+    var bc=bmap[r.estado]||'bg-secondary';
+    var lnk=r.link?'<a href="'+v_escH(r.link)+'" target="_blank" class="text-muted" style="font-size:.68rem;">↗</a>':'';
+    return'<tr><td style="font-size:.7rem;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r.idx+'</td><td class="reftd">'+v_escH(r.ref)+'</td><td><span class="badge '+bc+'">'+v_escH(r.estado)+'</span></td><td style="font-family:\'DM Mono\',monospace;font-size:.7rem;">'+(r.ejemplares||'–')+'</td><td class="cattd">'+v_escH(r.titulo_cat)+'</td><td class="cattd">'+v_escH(r.autor_cat)+'</td><td style="font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--gold);">'+r.score+'</td><td class="obstd">'+v_escH(r.obs)+' '+lnk+'</td></tr>';
+  }).join('');
+}
+function v_prevPage(){if(v_pg>0){v_pg--;v_renderTable();}}
+function v_nextPage(){if((v_pg+1)*V_PAGE<v_filtered.length){v_pg++;v_renderTable();}}
+
+// ── Descarga resultados ────────────────────────────────────
+document.getElementById('v_btnDlAll').addEventListener('click',function(){
+  v_makeXls(v_allResults.map(function(r){return{'#':r.idx,'Referencia Original':r.ref,'Estado':r.estado,'Ejemplares':r.ejemplares,'Título en Catálogo':r.titulo_cat,'Autor Catálogo':r.autor_cat,'Score':r.score,'Observaciones':r.obs};}),'Resultados','Resultados_Biblioteca_'+v_ts()+'.xlsx');
+});
+document.getElementById('v_btnDlNoEnc').addEventListener('click',function(){
+  var d=v_allResults.filter(function(r){return r.estado==='NO ENCONTRADO'||r.estado==='SIN STOCK';});
+  if(!d.length){v_showAlert('w','No hay referencias sin encontrar.');return;}
+  v_makeXls(d.map(function(r){return{'#':r.idx,'Referencia':r.ref,'Estado':r.estado,'Observaciones':r.obs};}),'No Encontrados','No_Encontrados_'+v_ts()+'.xlsx');
+});
+function v_makeXls(data,sheet,fname){var ws=XLSX.utils.json_to_sheet(data);ws['!cols']=[{wch:4},{wch:55},{wch:22},{wch:9},{wch:40},{wch:30},{wch:7},{wch:40}];var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,sheet);XLSX.writeFile(wb,fname);}
+function v_ts(){return new Date().toISOString().slice(0,10).replace(/-/g,'');}
+
+// ── Alertas ────────────────────────────────────────────────
+function v_showAlert(t,msg){
+  var map={e:'alert-danger',w:'alert-warning',o:'alert-success'};
+  var d=document.createElement('div');d.className='alert '+(map[t]||'alert-warning')+' alert-dismissible';
+  d.innerHTML='<span>'+msg+'</span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+  document.getElementById('v_alerts').appendChild(d);
+  if(t!=='e')setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},6000);
+}
+function v_clearAlerts(){document.getElementById('v_alerts').innerHTML='';}
+function v_escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Enviar al Cotizador ────────────────────────────────────
+var cotCola=[];
+function v_enviarAlCotizador(){
+  var noEnc=v_allResults.filter(function(r){return r.estado==='NO ENCONTRADO'||r.estado==='SIN STOCK';});
+  if(!noEnc.length){v_showAlert('w','No hay referencias sin encontrar para enviar.');return;}
+  cotCola=noEnc.map(function(r){
+    var p=parseRef(r.ref),titulo=r.ref;
+    var ym=r.ref.match(/\(\s*\d{4}\s*\)\.\s*(.+)/);
+    if(ym){var rest=ym[1],corte=rest.search(/\.\s+[A-ZÁÉÍÓÚ][a-z]/);titulo=corte>10?rest.slice(0,corte).trim():rest.split('.')[0].trim();}
+    var autorStr=p.surnames.length?p.surnames[0].charAt(0).toUpperCase()+p.surnames[0].slice(1):'';
+    return{ref:r.ref,titulo:titulo,autor:autorStr,cotizado:false};
+  });
+  renderCola();
+  // Activar pestaña Cotizador via Bootstrap
+  var cotTab=document.getElementById('cotizador-tab');
+  if(cotTab)bootstrap.Tab.getOrCreateInstance(cotTab).show();
+  v_showAlert('o','✅ '+cotCola.length+' referencias enviadas al Cotizador.');
+}
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPT 5 — COTIZADOR
+══════════════════════════════════════════════════════════ -->
+<script>
+var cotHistorial=[];
+
+async function cotizarLibro(){
+  var isbn=document.getElementById('cot_isbn').value.trim().replace(/[-\s]/g,'');
+  var titulo=document.getElementById('cot_titulo').value.trim();
+  var autor=document.getElementById('cot_autor').value.trim();
+  var bf=document.getElementById('cot_bookfinder').checked;
+  var bl=document.getElementById('cot_buscalibre').checked;
+  var amz=document.getElementById('cot_amazon').checked;
+  var ml=document.getElementById('cot_mercadolibre').checked;
+  var intv=parseInt(document.getElementById('cot_intervalo').value)*1000;
+  if(!isbn&&!titulo){alert('Ingresa al menos el ISBN o el título.');return;}
+  var sitios=[];
+  if(bf)sitios.push({nombre:'BookFinder',url:isbn?'https://www.bookfinder.com/search/?isbn='+isbn+'&mode=basic&st=sr&ac=qr':'https://www.bookfinder.com/search/?author='+encodeURIComponent(autor)+'&title='+encodeURIComponent(titulo)+'&mode=basic&st=sr&ac=qr'});
+  if(bl)sitios.push({nombre:'BuscaLibre',url:isbn?'https://www.buscalibre.cl/libros/search?q='+isbn:'https://www.buscalibre.cl/libros/search?q='+encodeURIComponent(titulo+' '+autor)});
+  if(amz)sitios.push({nombre:'Amazon',url:isbn?'https://www.amazon.com/s?k='+isbn:'https://www.amazon.com/s?k='+encodeURIComponent(titulo+' '+autor)+'&i=stripbooks'});
+  if(ml)sitios.push({nombre:'MercadoLibre',url:isbn?'https://listado.mercadolibre.cl/'+isbn:'https://listado.mercadolibre.cl/'+encodeURIComponent(titulo+' '+autor)});
+  if(!sitios.length){alert('Selecciona al menos un sitio.');return;}
+  var prog=document.getElementById('cot_prog'),progTxt=document.getElementById('cot_prog_txt'),progFill=document.getElementById('cot_prog_fill');
+  prog.style.display='block';
+  for(var i=0;i<sitios.length;i++){
+    progTxt.textContent='Abriendo '+sitios[i].nombre+'... ('+(i+1)+'/'+sitios.length+')';
+    progFill.style.width=Math.round(((i+1)/sitios.length)*100)+'%';
+    window.open(sitios[i].url,'_blank');
+    if(i<sitios.length-1)await new Promise(function(r){setTimeout(r,intv);});
+  }
+  progTxt.textContent='✅ Completado — '+sitios.length+' sitio(s) abiertos';
+  progFill.style.width='100%';
+  setTimeout(function(){prog.style.display='none';},3500);
+  var entrada={label:titulo||isbn,isbn:isbn,titulo:titulo,autor:autor};
+  cotHistorial.unshift(entrada);if(cotHistorial.length>8)cotHistorial.pop();renderHistorial();
+}
+
+function renderCola(){
+  var wrap=document.getElementById('cot_cola_wrap'),list=document.getElementById('cot_cola_list'),badge=document.getElementById('cot_cola_badge');
+  if(!cotCola.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  var pendientes=cotCola.filter(function(c){return!c.cotizado;}).length;
+  badge.textContent=pendientes+' pendientes / '+cotCola.length+' total';
+  list.innerHTML=cotCola.map(function(item,i){
+    var bg=item.cotizado?'#f8fafc':'#fff',tc=item.cotizado?'var(--muted)':'var(--text)';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);background:'+bg+';cursor:'+(item.cotizado?'default':'pointer')+';" '+(item.cotizado?'':' onclick="cargarEnCotizador('+i+')" title="Clic para cotizar"')+'>'
+      +'<span style="font-size:16px;">'+(item.cotizado?'✅':'📖')+'</span>'
+      +'<div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:600;color:'+tc+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+item.titulo+'">'+(item.titulo.length>72?item.titulo.slice(0,72)+'…':item.titulo)+'</div>'+(item.autor?'<div style="font-size:11px;color:var(--muted);">'+item.autor+'</div>':'')+'</div>'
+      +(item.cotizado?'<span style="font-size:10.5px;color:var(--green);font-weight:600;">Cotizado</span>':'<button onclick="event.stopPropagation();cargarEnCotizador('+i+')" style="font-size:11px;color:var(--accent);background:var(--accent-lt);border:1px solid #bfdbfe;border-radius:5px;padding:4px 12px;cursor:pointer;white-space:nowrap;font-weight:600;">Cotizar →</button>')
+      +'</div>';
+  }).join('');
+}
+
+function cargarEnCotizador(i){
+  var item=cotCola[i];
+  document.getElementById('cot_isbn').value='';
+  document.getElementById('cot_titulo').value=item.titulo;
+  document.getElementById('cot_autor').value=item.autor;
+  cotCola[i].cotizado=true;renderCola();
+  document.getElementById('cot_isbn').scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(cotizarLibro,300);
+}
+
+async function cotizarTodaLaCola(){
+  var pendientes=cotCola.filter(function(c){return!c.cotizado;});
+  if(!pendientes.length){alert('Todos los libros ya fueron cotizados.');return;}
+  if(!confirm('Se abrirán pestañas para '+pendientes.length+' libros. ¿Continuar?'))return;
+  var intv=parseInt(document.getElementById('cot_intervalo').value)*1000;
+  for(var i=0;i<cotCola.length;i++){
+    if(cotCola[i].cotizado)continue;
+    document.getElementById('cot_titulo').value=cotCola[i].titulo;
+    document.getElementById('cot_autor').value=cotCola[i].autor;
+    document.getElementById('cot_isbn').value='';
+    cotCola[i].cotizado=true;renderCola();
+    await cotizarLibro();
+    if(i<cotCola.length-1)await new Promise(function(r){setTimeout(r,intv+500);});
+  }
+}
+
+function limpiarCola(){cotCola=[];renderCola();}
+
+function renderHistorial(){
+  var wrap=document.getElementById('cot_historial_wrap'),list=document.getElementById('cot_historial_list');
+  if(!cotHistorial.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  list.innerHTML=cotHistorial.map(function(h,i){
+    return'<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:12.5px;color:var(--text);">'+h.label+(h.autor?' <span style="color:var(--muted);font-size:11px;">· '+h.autor+'</span>':'')+'</span><button onclick="cotizarDesdeHistorial('+i+')" style="font-size:11px;color:var(--accent);background:none;border:1px solid var(--border);border-radius:5px;padding:3px 10px;cursor:pointer;">↻ Buscar</button></div>';
+  }).join('');
+}
+
+function cotizarDesdeHistorial(i){
+  var h=cotHistorial[i];
+  document.getElementById('cot_isbn').value=h.isbn||'';
+  document.getElementById('cot_titulo').value=h.titulo||'';
+  document.getElementById('cot_autor').value=h.autor||'';
+  cotizarLibro();
+}
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPT 6 — DISPONIBILIDAD (manual)
+══════════════════════════════════════════════════════════ -->
+<script>
+var disp_items=[];
+var OPAC_BASE='OPAC_URL_AQUI';
+var DISP_ESTADOS={sin:{label:'⬜ Sin verificar',cls:''},disponible:{label:'✅ Disponible',cls:'table-success'},prestado:{label:'🟡 Prestado / Revisar',cls:'table-warning'},noesta:{label:'🔴 No está en catálogo',cls:'table-danger'}};
+
+function disp_agregarManual(){
+  var titulo=document.getElementById('disp_titulo').value.trim();
+  var autor=document.getElementById('disp_autor').value.trim();
+  var anio=document.getElementById('disp_anio').value.trim();
+  if(!titulo)return alert('El título es obligatorio.');
+  disp_items.push({titulo,autor,anio,estado:'sin'});
+  document.getElementById('disp_titulo').value='';document.getElementById('disp_autor').value='';document.getElementById('disp_anio').value='';
+  disp_renderTabla();
+}
+
+function disp_cargarDesdeGestor(){
+  if(!gestor_refs.length)return alert('El Gestor no tiene referencias cargadas aún.');
+  var ag=0;
+  gestor_refs.forEach(r=>{
+    const ref=r.Referencia||'',rl=ref.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
+    const mA=rl.match(/^\s*([^(]+)\s*\(/),autor=mA?mA[1].trim():'';
+    const mY=rl.match(/\((\d{4})\)/),anio=mY?mY[1]:'';
+    const mH=ref.match(/<i>([^<]+)<\/i>/);let titulo=mH?mH[1].trim():'';
+    if(!titulo){const da=rl.replace(/^.+?\(\d{4}\)[.:\s–\-]+/,'');const c=da.search(/\.\s+[A-Z][a-z]/);titulo=c>0?da.substring(0,c).trim():da.split(/[.:]/)[0].trim();}
+    if(!titulo)titulo=rl.replace(/^[^(]+\(\d{4}\)\.\s*/,'').substring(0,100);
+    if(!titulo)return;
+    const tn=titulo.toLowerCase().replace(/\s+/g,' ');
+    if(!disp_items.some(i=>i.titulo.toLowerCase().replace(/\s+/g,' ')===tn)){disp_items.push({titulo,autor,anio,estado:'sin'});ag++;}
+  });
+  disp_renderTabla();alert(`✅ ${ag} libro(s) importados desde el Gestor.`);
+}
+
+function disp_construirQuery(titulo,autor){
+  const stopwords=new Set(['de','la','le','les','du','des','el','los','las','the','a','an','en','et','of','in','sur','d','y','con','por','un','una','al','del']);
+  function norm2(t){return t.replace(/[''´`]/g,' ').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9\s]/g,' ').replace(/\s+/g,' ').trim();}
+  const apellido=autor?norm2(autor.split(',')[0].trim()):'';
+  const palabras=norm2(titulo).split(' ').filter(p=>p.length>3&&!stopwords.has(p.toLowerCase())).slice(0,1);
+  return[apellido,...palabras].filter(Boolean).join(' & ');
+}
+
+function disp_buscarEnCatalogo(idx){
+  const item=disp_items[idx];
+  const url=OPAC_BASE+encodeURIComponent(disp_construirQuery(item.titulo,item.autor));
+  window.open(url,'_blank');
+}
+
+function disp_setEstado(idx,estado){disp_items[idx].estado=estado;disp_renderTabla();}
+function disp_eliminar(idx){disp_items.splice(idx,1);disp_renderTabla();}
+
+function disp_renderTabla(){
+  const tbody=document.getElementById('disp_tbody');tbody.innerHTML='';
+  if(!disp_items.length){tbody.innerHTML='<tr><td colspan="6" class="text-center text-muted py-4">Aún no hay libros en la lista.</td></tr>';document.getElementById('disp_resumen').style.display='none';return;}
+  disp_items.forEach((item,idx)=>{
+    const ei=DISP_ESTADOS[item.estado];
+    tbody.innerHTML+=`<tr class="${ei.cls}"><td><strong>${item.titulo}</strong></td><td>${item.autor||'<span class="text-muted">—</span>'}</td><td>${item.anio||'<span class="text-muted">—</span>'}</td><td><button class="btn btn-sm btn-outline-primary w-100" onclick="disp_buscarEnCatalogo(${idx})">🔍 Buscar</button></td><td><select class="form-select form-select-sm" onchange="disp_setEstado(${idx},this.value)"><option value="sin" ${item.estado==='sin'?'selected':''}>⬜ Sin verificar</option><option value="disponible" ${item.estado==='disponible'?'selected':''}>✅ Disponible</option><option value="prestado" ${item.estado==='prestado'?'selected':''}>🟡 Prestado</option><option value="noesta" ${item.estado==='noesta'?'selected':''}>🔴 No está</option></select></td><td class="text-center"><button class="btn btn-sm btn-danger" onclick="disp_eliminar(${idx})">✕</button></td></tr>`;
+  });
+  const cnts={disponible:0,prestado:0,noesta:0,sin:0};
+  disp_items.forEach(i=>cnts[i.estado]++);
+  document.getElementById('disp_cnt_disponible').textContent=cnts.disponible;
+  document.getElementById('disp_cnt_prestado').textContent=cnts.prestado;
+  document.getElementById('disp_cnt_noesta').textContent=cnts.noesta;
+  document.getElementById('disp_cnt_sin').textContent=cnts.sin;
+  document.getElementById('disp_resumen').style.display='block';
+}
+
+function disp_exportarExcel(){
+  if(!disp_items.length)return alert('No hay datos.');
+  const et={sin:'Sin verificar',disponible:'Disponible',prestado:'Prestado / Revisar',noesta:'No está en catálogo'};
+  const datos=disp_items.map(i=>({'Título':i.titulo,'Autor':i.autor||'','Año':i.anio||'','Disponibilidad':et[i.estado],'URL Catálogo':OPAC_BASE+encodeURIComponent(disp_construirQuery(i.titulo,i.autor))}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(datos),'Disponibilidad Bibliográfica');XLSX.writeFile(wb,'Disponibilidad_Bibliografica.xlsx');
+}
+// ── Edición inline de referencias ────────────────────────────────────────────
+let _editRefIdx = -1;
+let _editRefModal = null;
+
+function _getEditModal(){
+  if(!_editRefModal) _editRefModal = new bootstrap.Modal(document.getElementById('editRefModal'));
+  return _editRefModal;
+}
+
+function ext_editarRef(idx, celda){
+  _editRefIdx = idx;
+  const ref = ext_datos[idx].ref;
+  // Modo editar
+  document.getElementById('editRefModoEditar').style.display = 'block';
+  document.getElementById('editRefModoPartir').style.display = 'none';
+  document.getElementById('editRefModalTitle').textContent = '✏️ Editar referencia';
+  document.getElementById('editRefTexto').value = ref;
+  _getEditModal().show();
+  setTimeout(()=>document.getElementById('editRefTexto').focus(), 300);
+}
+
+function ext_guardarEdicion(){
+  const texto = document.getElementById('editRefTexto').value.trim();
+  if(!texto){ alert('La referencia no puede quedar vacía.'); return; }
+  ext_datos[_editRefIdx].ref = texto;
+  ext_datos[_editRefIdx].status = validarCalidad(texto);
+  _getEditModal().hide();
+  ext_updateView();
+}
+
+function ext_partirRef(idx){
+  _editRefIdx = idx;
+  const ref = ext_datos[idx].ref;
+  // Intentar partir automáticamente en el punto más probable
+  // Busca ". Apellido" o ". APELLIDO" como punto de corte sugerido
+  const corteSugerido = (() => {
+    const m = ref.match(/\.\s+(?=[A-ZÁÉÍÓÚÑÜ][A-Za-záéíóúñü]{1,}[\s,;.("])/);
+    if(m) return [ref.slice(0, m.index+1).trim(), ref.slice(m.index+m[0].length).trim()];
+    // Fallback: partir por la mitad
+    const mid = Math.floor(ref.length/2);
+    const espacio = ref.indexOf(' ', mid);
+    return [ref.slice(0, espacio).trim(), ref.slice(espacio+1).trim()];
+  })();
+  document.getElementById('editRefModoEditar').style.display = 'none';
+  document.getElementById('editRefModoPartir').style.display = 'block';
+  document.getElementById('editRefModalTitle').textContent = '✂️ Partir en dos referencias';
+  document.getElementById('partirRef1').value = corteSugerido[0];
+  document.getElementById('partirRef2').value = corteSugerido[1];
+  _getEditModal().show();
+  setTimeout(()=>document.getElementById('partirRef1').focus(), 300);
+}
+
+function ext_guardarParticion(){
+  const ref1 = document.getElementById('partirRef1').value.trim();
+  const ref2 = document.getElementById('partirRef2').value.trim();
+  if(!ref1||!ref2){ alert('Ambas referencias deben tener contenido.'); return; }
+  const original = ext_datos[_editRefIdx];
+  // Reemplazar el original con ref1 y añadir ref2 justo después
+  ext_datos[_editRefIdx] = { ...original, ref: ref1, status: validarCalidad(ref1) };
+  const nueva = { ...original, ref: ref2, status: validarCalidad(ref2) };
+  ext_datos.splice(_editRefIdx + 1, 0, nueva);
+  _getEditModal().hide();
+  ext_updateView();
+}
+
+function ext_cambiarTipo(idx, nuevoTipo){
+  ext_datos[idx].tipo = nuevoTipo;
+  // No redibuja todo — solo actualiza el dato
+}
+
+function ext_eliminarUna(idx){
+  if(!confirm('¿Eliminar esta referencia?')) return;
+  ext_datos.splice(idx, 1);
+  ext_updateView();
+}
+
+</script>
+</body>
+</html>
