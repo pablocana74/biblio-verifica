@@ -115,9 +115,9 @@ Si necesitas ayuda con la adaptación, puedes abrir un [Issue](../../issues) o e
 
 ## Autor
 
-**Pablo [Coronel]**
+**Pablo [Ocaña]**
 Profesional de biblioteca 
-[LinkedIn](#) · [Correo](#)
+[pcocana@gmail.com(#)
 
 ---
 
