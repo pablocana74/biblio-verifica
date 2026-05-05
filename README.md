@@ -115,9 +115,9 @@ Si necesitas ayuda con la adaptación, puedes abrir un [Issue](../../issues) o e
 
 ## Autor
 
-**Pablo [Ocaña]**
+**Pablo Ocaña**
 Profesional de biblioteca 
-[pcocana@gmail.com(#)
+[pcocana@gmail.com](mailto:pcocana@gmail.com)
 
 ---
 
