@@ -41,7 +41,7 @@ Las referencias marcadas como "no encontradas" se envían automáticamente al co
 
 ## Demostración
 
-> 📸 *Captura de pantalla / GIF demostrativo (próximamente)*
+<img src="screenshot.png" alt="Vista general de la herramienta" width="700"/>
 
 ---
 
