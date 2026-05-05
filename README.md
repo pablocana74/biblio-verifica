@@ -109,8 +109,8 @@ Si necesitas ayuda con la adaptación, puedes abrir un [Issue](../../issues) o e
 
 ## Autor
 
-**Pablo [Apellido]**
-Profesional de biblioteca · Universidad chilena
+**Pablo [Coronel]**
+Profesional de biblioteca 
 [LinkedIn](#) · [Correo](#)
 
 ---
