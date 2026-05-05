@@ -46,6 +46,9 @@ Las referencias marcadas como "no encontradas" se envían automáticamente al co
 ### Extarctor masivo
 ![Extarctor](screenshot-extractor.png)
 
+### Gestor APA
+![Gestor APA](screenshot-gestorAPA.png)
+
 ---
 
 ## Cómo usar
