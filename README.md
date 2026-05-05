@@ -43,6 +43,9 @@ Las referencias marcadas como "no encontradas" se envían automáticamente al co
 
 <img src="screenshot.png" alt="Vista general de la herramienta" width="700"/>
 
+### Verificador de catálogo
+![Verificador](screenshot-extractor.png)
+
 ---
 
 ## Cómo usar
