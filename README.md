@@ -55,7 +55,7 @@ Las referencias marcadas como "no encontradas" se envían automáticamente al co
 
 No requiere instalación. No requiere conexión a internet (excepto para las búsquedas en tiendas).
 
-1. Descarga el archivo `index.html` desde este repositorio [Ver demo](https://pcocana.github.io/biblio-verifica/)
+1. Descarga el archivo `index.html` desde este repositorio [Ver demo](https://pablocana74.github.io/biblio-verifica/)
 2. Ábrelo en cualquier navegador moderno (Chrome, Firefox, Edge)
 3. Importa tu archivo Excel con las referencias y el catálogo
 4. Ejecuta la verificación y exporta los resultados
@@ -117,7 +117,7 @@ Si necesitas ayuda con la adaptación, puedes abrir un [Issue](../../issues) o e
 
 **Pablo Ocaña**
 Profesional de biblioteca 
-[pcocana@gmail.com](mailto:pcocana@gmail.com)
+[pcocana@gmail.com](mailto:pablo.coronel@uniacc.edu)
 
 ---
 
